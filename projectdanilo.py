@@ -4,700 +4,1118 @@ import os
 if not os.path.exists(".streamlit"):
     os.makedirs(".streamlit")
 with open(".streamlit/config.toml", "w") as f:
-    f.write('[theme]\nbase="dark"\nprimaryColor="#6366f1"\nbackgroundColor="#09090f"\nsecondaryBackgroundColor="#111118"\ntextColor="#e2e8f0"\nfont="sans serif"\n')
+    f.write(
+        '[theme]\nbase="light"\nprimaryColor="#0071e3"\n'
+        'backgroundColor="#f5f5f7"\nsecondaryBackgroundColor="#ffffff"\n'
+        'textColor="#1d1d1f"\nfont="sans serif"\n'
+    )
 
-st.set_page_config(page_title="DANILO", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(
+    page_title="DANILO Academic Platform",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
+# ═══════════════════════════════════════════════════════════════════
+#  CSS — Linear × Apple × Notion
+# ═══════════════════════════════════════════════════════════════════
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-    :root {
-        --bg:          #09090f;
-        --surface:     #111118;
-        --surface2:    #16161f;
-        --border:      rgba(255,255,255,0.07);
-        --border-glow: rgba(99,102,241,0.35);
-        --text:        #e2e8f0;
-        --muted:       #64748b;
-        --muted2:      #94a3b8;
+/* ── Variables ─────────────────────────── */
+:root {
+    --bg:           #f5f5f7;
+    --surface:      #ffffff;
+    --surface2:     #fafafa;
+    --border:       rgba(0,0,0,0.08);
+    --border2:      rgba(0,0,0,0.13);
+    --text:         #1d1d1f;
+    --muted:        #6e6e73;
+    --muted2:       #86868b;
+    --blue:         #0071e3;
+    --blue-mid:     rgba(0,113,227,0.14);
+    --blue-soft:    rgba(0,113,227,0.07);
+    --green:        #34c759;
+    --green-soft:   rgba(52,199,89,0.09);
+    --purple:       #af52de;
+    --purple-soft:  rgba(175,82,222,0.09);
+    --amber:        #ff9f0a;
+    --amber-soft:   rgba(255,159,10,0.09);
+    --red:          #ff3b30;
+    --sh1: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+    --sh2: 0 4px 16px rgba(0,0,0,0.07), 0 2px 6px rgba(0,0,0,0.04);
+    --sh3: 0 12px 36px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.05);
+    --r:   16px;
+    --r-sm:10px;
+}
 
-        --indigo:      #6366f1;
-        --indigo-soft: rgba(99,102,241,0.12);
-        --indigo-glow: rgba(99,102,241,0.25);
+/* ── Global ────────────────────────────── */
+html, body, [class*="css"],
+p, div, span, h1, h2, h3, h4, h5,
+label, button, input, li, td, th, textarea {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+.stApp { background: var(--bg) !important; }
+.block-container {
+    padding: 2.75rem 2.5rem 6rem !important;
+    max-width: 940px !important;
+}
+#MainMenu, footer, header { visibility: hidden; }
 
-        --emerald:     #10b981;
-        --emerald-soft:rgba(16,185,129,0.12);
-        --emerald-glow:rgba(16,185,129,0.25);
+/* ── Keyframes ─────────────────────────── */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideRight {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes scalePop {
+    0%   { transform: scale(0.94); opacity: 0; }
+    100% { transform: scale(1);    opacity: 1; }
+}
+@keyframes barGrow {
+    from { width: 0%; }
+    to   { width: var(--bar-w); }
+}
+@keyframes glowPulse {
+    0%, 100% { opacity: 0.6; }
+    50%       { opacity: 1; }
+}
 
-        --violet:      #a855f7;
-        --violet-soft: rgba(168,85,247,0.12);
-        --violet-glow: rgba(168,85,247,0.25);
+/* ═══ SIDEBAR ══════════════════════════ */
+section[data-testid="stSidebar"] {
+    background: var(--surface) !important;
+    border-right: 1px solid var(--border) !important;
+    min-width: 258px !important;
+    max-width: 258px !important;
+}
+section[data-testid="stSidebar"] > div { padding: 0 !important; }
+section[data-testid="stSidebar"] .block-container {
+    padding: 0 !important;
+    max-width: none !important;
+}
+button[data-testid="collapsedControl"] { display: none !important; }
 
-        --amber:       #f59e0b;
-        --amber-soft:  rgba(245,158,11,0.12);
-        --amber-glow:  rgba(245,158,11,0.25);
+/* Sidebar brand */
+.sb-brand {
+    padding: 1.4rem 1.25rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    animation: fadeIn 0.4s ease both;
+}
+.sb-logo {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 0.15rem;
+}
+.sb-logo .grd {
+    background: linear-gradient(120deg, var(--blue) 0%, var(--purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.sb-tagline {
+    font-size: 0.7rem;
+    color: var(--muted2);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+}
 
-        --red:         #ef4444;
-        --green:       #22c55e;
-    }
+/* Sidebar section label */
+.sb-section {
+    padding: 1rem 1.25rem 0.3rem;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--muted2);
+}
 
-    html, body, [class*="css"],
-    p, div, span, h1, h2, h3, h4, label, button, input, li {
-        font-family: 'Inter', sans-serif !important;
-    }
+/* Nav rows */
+.nav-row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.5rem 0.75rem;
+    margin: 0.1rem 0.5rem;
+    border-radius: var(--r-sm);
+    cursor: default;
+    animation: slideRight 0.3s ease both;
+}
+.nav-active {
+    background: var(--blue-soft);
+}
+.nav-locked {
+    opacity: 0.38;
+}
+.nav-icon {
+    font-size: 0.9rem;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+.nav-label {
+    font-size: 0.855rem;
+    font-weight: 500;
+    color: var(--muted);
+    flex-grow: 1;
+    letter-spacing: -0.01em;
+}
+.nav-active .nav-label {
+    color: var(--blue);
+    font-weight: 600;
+}
+.nav-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.dot-done   { background: var(--green); }
+.dot-active { background: var(--blue); animation: glowPulse 2s ease infinite; }
+.dot-none   { background: rgba(0,0,0,0.12); }
 
-    .block-container {
-        padding: 3.5rem 2.5rem 6rem !important;
-        max-width: 1120px !important;
-    }
+/* Sidebar buttons (styled as nav links) */
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    text-align: left !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: var(--r-sm) !important;
+    padding: 0.5rem 1.25rem !important;
+    margin: 0.1rem 0 !important;
+    color: var(--muted) !important;
+    font-size: 0.855rem !important;
+    font-weight: 500 !important;
+    box-shadow: none !important;
+    transition: background 0.15s, color 0.15s !important;
+    letter-spacing: -0.01em !important;
+}
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button:hover {
+    background: rgba(0,0,0,0.04) !important;
+    color: var(--text) !important;
+    transform: none !important;
+}
 
-    #MainMenu, footer, header { visibility: hidden; }
-    .stApp { background: var(--bg) !important; }
+/* Sidebar progress */
+.sb-progress {
+    padding: 1.1rem 1.25rem;
+    border-top: 1px solid var(--border);
+    margin-top: 0.5rem;
+    animation: fadeIn 0.5s ease 0.4s both;
+}
+.sb-prog-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.55rem;
+}
+.sb-prog-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: -0.01em;
+}
+.sb-prog-pct {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--blue);
+}
+.sb-track {
+    height: 4px;
+    background: rgba(0,0,0,0.07);
+    border-radius: 99px;
+    overflow: hidden;
+}
+.sb-fill {
+    height: 4px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--blue), var(--purple));
+    animation: barGrow 0.8s ease 0.5s both;
+}
+.sb-modules-done {
+    font-size: 0.68rem;
+    color: var(--muted2);
+    margin-top: 0.4rem;
+    font-weight: 400;
+}
 
-    /* ── dot-grid background overlay ── */
-    .stApp::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background-image: radial-gradient(circle, rgba(255,255,255,0.045) 1px, transparent 1px);
-        background-size: 28px 28px;
-        pointer-events: none;
-        z-index: 0;
-    }
+/* ═══ HERO ══════════════════════════════ */
+.hero {
+    padding: 1.5rem 0 2.5rem;
+    position: relative;
+    animation: fadeUp 0.5s ease both;
+}
+.hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; left: -120px;
+    width: 460px; height: 460px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,113,227,0.055) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+}
+.hero::after {
+    content: '';
+    position: absolute;
+    top: -40px; right: -80px;
+    width: 340px; height: 340px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(175,82,222,0.045) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+}
+.hero-eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 0.55rem;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: fadeUp 0.5s ease 0.05s both;
+}
+.hero-eyebrow::before {
+    content: '';
+    width: 18px; height: 2px;
+    background: var(--blue);
+    border-radius: 2px;
+    display: inline-block;
+}
+.hero-title {
+    font-size: 3.1rem;
+    font-weight: 800;
+    letter-spacing: -0.045em;
+    line-height: 1.05;
+    color: var(--text);
+    margin-bottom: 0.7rem;
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 0.5s ease 0.1s both;
+}
+.hero-title .grd {
+    background: linear-gradient(120deg, var(--blue) 0%, #7b5ce7 60%, var(--purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.hero-sub {
+    font-size: 1rem;
+    color: var(--muted);
+    font-weight: 400;
+    line-height: 1.65;
+    max-width: 500px;
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 0.5s ease 0.15s both;
+}
 
-    /* ── ambient glow blobs ── */
-    .stApp::after {
-        content: '';
-        position: fixed;
-        width: 600px; height: 600px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
-        top: -200px; left: -200px;
-        pointer-events: none;
-        z-index: 0;
-    }
+/* ═══ MODULE CARDS ══════════════════════ */
+.mc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 1.65rem;
+    height: 218px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--sh1);
+    transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.2s;
+    margin-bottom: 0.75rem;
+}
+.mc:hover {
+    box-shadow: var(--sh3);
+    transform: translateY(-4px);
+    border-color: rgba(0,0,0,0.13);
+}
+.mc.mc-locked {
+    opacity: 0.5;
+    pointer-events: none;
+}
+.mc.mc-locked:hover {
+    transform: none;
+    box-shadow: var(--sh1);
+}
+/* Top gradient stripe */
+.mc::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: var(--r) var(--r) 0 0;
+}
+.mc-blue::before   { background: linear-gradient(90deg, #0071e3, #38bdf8); }
+.mc-green::before  { background: linear-gradient(90deg, #34c759, #86efac); }
+.mc-purple::before { background: linear-gradient(90deg, #af52de, #e879f9); }
+.mc-amber::before  { background: linear-gradient(90deg, #ff9f0a, #fcd34d); }
+/* Ghost number watermark */
+.mc-ghost {
+    position: absolute;
+    bottom: -10px; right: 8px;
+    font-size: 6rem;
+    font-weight: 900;
+    letter-spacing: -0.06em;
+    color: var(--text);
+    opacity: 0.028;
+    pointer-events: none;
+    line-height: 1;
+    user-select: none;
+}
+/* Card icon pill */
+.mc-icon {
+    width: 40px; height: 40px;
+    border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    margin-bottom: 0.85rem;
+    flex-shrink: 0;
+}
+.i-blue   { background: var(--blue-soft); }
+.i-green  { background: var(--green-soft); }
+.i-purple { background: var(--purple-soft); }
+.i-amber  { background: var(--amber-soft); }
+.mc-num {
+    position: absolute;
+    top: 1.15rem; right: 1.15rem;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--muted2);
+    background: rgba(0,0,0,0.04);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.15rem 0.45rem;
+}
+.mc-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.3rem;
+}
+.mc-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+    flex-grow: 1;
+}
+.mc-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 99px;
+    width: fit-content;
+    margin-top: 0.65rem;
+}
+.ms-on  { background: var(--green-soft);  color: #166534; }
+.ms-off { background: rgba(0,0,0,0.05);   color: var(--muted2); }
 
-    /* ═══ HEADER / EYEBROW ═══ */
-    .eyebrow {
-        font-size: 0.68rem;
-        font-weight: 700;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: var(--indigo);
-        margin-bottom: 0.6rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    .eyebrow::before {
-        content: '';
-        display: inline-block;
-        width: 20px; height: 2px;
-        background: var(--indigo);
-        border-radius: 2px;
-    }
+/* Card animations with stagger */
+.mc-anim-1 { animation: scalePop 0.45s ease 0.08s both; }
+.mc-anim-2 { animation: scalePop 0.45s ease 0.16s both; }
+.mc-anim-3 { animation: scalePop 0.45s ease 0.24s both; }
+.mc-anim-4 { animation: scalePop 0.45s ease 0.32s both; }
 
-    .hero-title {
-        font-size: 3.6rem;
-        font-weight: 900;
-        letter-spacing: -0.04em;
-        line-height: 1;
-        color: var(--text);
-        margin-bottom: 0.6rem;
-    }
+/* ═══ HOW IT WORKS PANEL ════════════════ */
+.how-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 1.65rem;
+    box-shadow: var(--sh1);
+    animation: scalePop 0.45s ease 0.36s both;
+    position: relative;
+    overflow: hidden;
+}
+.how-panel::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; right: -40px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,113,227,0.055), transparent 70%);
+    pointer-events: none;
+}
+.how-title {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    margin-bottom: 1rem;
+}
+.how-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    margin-bottom: 0.75rem;
+}
+.how-step:last-child { margin-bottom: 0; }
+.how-num {
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 22px; height: 22px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.hn-blue   { background: var(--blue-soft);   color: var(--blue); }
+.hn-green  { background: var(--green-soft);  color: #166534; }
+.hn-purple { background: var(--purple-soft); color: #6b21a8; }
+.how-text {
+    font-size: 0.845rem;
+    color: var(--muted);
+    line-height: 1.5;
+}
 
-    .hero-title span {
-        background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
+/* ═══ MAIN BUTTONS ══════════════════════ */
+div[data-testid="stButton"] > button {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    letter-spacing: -0.01em !important;
+    border-radius: 980px !important;
+    padding: 0.58rem 1.3rem !important;
+    background: var(--text) !important;
+    color: #fff !important;
+    border: none !important;
+    box-shadow: none !important;
+    transition: all 0.2s ease !important;
+}
+div[data-testid="stButton"] > button:hover {
+    background: #2d2d2d !important;
+    transform: scale(1.025) !important;
+}
+div[data-testid="stButton"] > button:disabled {
+    background: rgba(0,0,0,0.06) !important;
+    color: rgba(0,0,0,0.22) !important;
+    transform: none !important;
+}
+div[data-testid="stFormSubmitButton"] > button {
+    font-family: 'Inter', sans-serif !important;
+    background: var(--blue) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 980px !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+    padding: 0.65rem 2rem !important;
+    box-shadow: 0 4px 18px rgba(0,113,227,0.28) !important;
+    transition: all 0.2s ease !important;
+    letter-spacing: -0.01em !important;
+}
+div[data-testid="stFormSubmitButton"] > button:hover {
+    background: #0077ed !important;
+    box-shadow: 0 8px 28px rgba(0,113,227,0.38) !important;
+    transform: translateY(-1px) !important;
+}
 
-    .hero-sub {
-        font-size: 1.05rem;
-        color: var(--muted);
-        font-weight: 400;
-        line-height: 1.6;
-        margin-bottom: 3rem;
-        max-width: 480px;
-    }
+/* ═══ MODULE PAGE ═══════════════════════ */
+.mod-header {
+    padding: 1rem 0 2rem;
+    animation: fadeUp 0.4s ease both;
+}
+.mod-eyebrow {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 0.45rem;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+.mod-eyebrow-line {
+    width: 14px; height: 2px;
+    border-radius: 2px;
+    display: inline-block;
+}
+.mod-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.045em;
+    color: var(--text);
+    line-height: 1.05;
+}
 
-    /* ═══ MODULE CARDS ═══ */
-    .module-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 1.75rem;
-        height: 230px;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        overflow: hidden;
-        transition: border-color 0.3s, transform 0.2s, box-shadow 0.3s;
-        margin-bottom: 0.75rem;
-    }
+/* Lesson cards */
+.lc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 1.5rem 1.7rem;
+    margin-bottom: 0.6rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--sh1);
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+}
+.lc:hover {
+    box-shadow: var(--sh2);
+    transform: translateX(2px);
+    border-color: rgba(0,0,0,0.12);
+}
+.lc::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+}
+.lc-blue::before   { background: var(--blue); }
+.lc-green::before  { background: var(--green); }
+.lc-purple::before { background: var(--purple); }
+.lc-anim-1 { animation: fadeUp 0.4s ease 0.05s both; }
+.lc-anim-2 { animation: fadeUp 0.4s ease 0.12s both; }
+.lc-anim-3 { animation: fadeUp 0.4s ease 0.19s both; }
+.lc-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    margin-bottom: 0.3rem;
+}
+.lc-heading {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.55rem;
+}
+.lc-body {
+    font-size: 0.905rem;
+    color: var(--muted);
+    line-height: 1.78;
+}
+.lc-body strong { color: var(--text); font-weight: 600; }
 
-    .module-card::after {
-        content: attr(data-num);
-        position: absolute;
-        bottom: -0.5rem; right: 1rem;
-        font-size: 6rem;
-        font-weight: 900;
-        letter-spacing: -0.05em;
-        opacity: 0.04;
-        color: white;
-        line-height: 1;
-        pointer-events: none;
-    }
+/* Section separator */
+.sep {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 2rem 0 1.25rem;
+    animation: fadeIn 0.4s ease 0.25s both;
+}
+.sep-text {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    white-space: nowrap;
+}
+.sep-line {
+    flex-grow: 1;
+    height: 1px;
+    background: var(--border);
+}
 
-    /* Colored top stripe + glow */
-    .card-indigo  { border-top: 2px solid var(--indigo);  box-shadow: 0 0 0 0 var(--indigo-glow); }
-    .card-emerald { border-top: 2px solid var(--emerald); box-shadow: 0 0 0 0 var(--emerald-glow); }
-    .card-violet  { border-top: 2px solid var(--violet);  box-shadow: 0 0 0 0 var(--violet-glow); }
-    .card-amber   { border-top: 2px solid var(--amber);   box-shadow: 0 0 0 0 var(--amber-glow); }
+/* ═══ QUIZ ══════════════════════════════ */
+.quiz-banner {
+    border-radius: var(--r);
+    padding: 1.75rem 2rem;
+    margin-bottom: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.4s ease 0.1s both;
+}
+.qb-blue {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe 80%);
+    border: 1px solid rgba(0,113,227,0.15);
+}
+.qb-green {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7 80%);
+    border: 1px solid rgba(52,199,89,0.18);
+}
+.qb-purple {
+    background: linear-gradient(135deg, #faf5ff, #ede9fe 80%);
+    border: 1px solid rgba(175,82,222,0.18);
+}
+.quiz-banner::after {
+    content: '?';
+    position: absolute;
+    right: 1.5rem; top: 50%;
+    transform: translateY(-50%);
+    font-size: 7rem;
+    font-weight: 900;
+    opacity: 0.06;
+    line-height: 1;
+    pointer-events: none;
+}
+.qb-tag {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    margin-bottom: 0.3rem;
+}
+.qb-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 0.2rem;
+}
+.qb-sub {
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--muted);
+}
 
-    .card-icon-wrap {
-        width: 40px; height: 40px;
-        border-radius: 10px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.1rem;
-        margin-bottom: 1rem;
-        flex-shrink: 0;
-    }
-    .icon-indigo  { background: var(--indigo-soft); }
-    .icon-emerald { background: var(--emerald-soft); }
-    .icon-violet  { background: var(--violet-soft); }
-    .icon-amber   { background: var(--amber-soft); }
+div[role="radiogroup"] {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+    padding: 1.35rem 1.7rem !important;
+    margin-bottom: 0.55rem !important;
+    box-shadow: var(--sh1) !important;
+    animation: fadeUp 0.35s ease both !important;
+    transition: border-color 0.15s, box-shadow 0.15s !important;
+}
+div[role="radiogroup"]:hover {
+    border-color: rgba(0,0,0,0.13) !important;
+    box-shadow: var(--sh2) !important;
+}
 
-    .card-num-badge {
-        position: absolute;
-        top: 1.25rem; right: 1.25rem;
-        font-size: 0.65rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        color: var(--muted);
-        background: rgba(255,255,255,0.05);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 0.2rem 0.5rem;
-    }
+/* ═══ RESULT CARD ═══════════════════════ */
+.result-card {
+    border-radius: var(--r);
+    padding: 2rem 2.25rem;
+    margin-top: 1.25rem;
+    animation: scalePop 0.4s ease both;
+    position: relative;
+    overflow: hidden;
+}
+.rc-pass {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border: 1px solid rgba(52,199,89,0.22);
+}
+.rc-fail {
+    background: linear-gradient(135deg, #fff5f5, #fee2e2);
+    border: 1px solid rgba(255,59,48,0.18);
+}
+.rc-tag {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    margin-bottom: 0.45rem;
+}
+.rt-pass { color: #166534; }
+.rt-fail { color: #991b1b; }
+.rc-score {
+    font-size: 4rem;
+    font-weight: 900;
+    letter-spacing: -0.06em;
+    line-height: 1;
+    margin-bottom: 0.2rem;
+}
+.rs-pass { color: var(--green); }
+.rs-fail { color: var(--red); }
+.rc-denom { font-size: 1.5rem; color: var(--muted2); font-weight: 500; }
+.rc-msg {
+    font-size: 0.895rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    line-height: 1.6;
+}
 
-    .card-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--text);
-        margin-bottom: 0.3rem;
-        letter-spacing: -0.02em;
-    }
+/* ═══ METRICS PAGE ══════════════════════ */
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 1.75rem 1.5rem 1.5rem;
+    text-align: center;
+    box-shadow: var(--sh1);
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.25s, transform 0.25s;
+}
+.stat-card:hover { box-shadow: var(--sh3); transform: translateY(-3px); }
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+}
+.sc-b::before { background: linear-gradient(90deg, var(--blue), #38bdf8); }
+.sc-g::before { background: linear-gradient(90deg, var(--green), #86efac); }
+.sc-p::before { background: linear-gradient(90deg, var(--purple), #e879f9); }
+.stat-card-anim-1 { animation: scalePop 0.45s ease 0.08s both; }
+.stat-card-anim-2 { animation: scalePop 0.45s ease 0.16s both; }
+.stat-card-anim-3 { animation: scalePop 0.45s ease 0.24s both; }
+.sv {
+    font-size: 2.9rem;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    margin-bottom: 0.35rem;
+}
+.sv-b { color: var(--blue); }
+.sv-g { color: var(--green); }
+.sv-p { color: var(--purple); }
+.sl {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted2);
+}
 
-    .card-desc {
-        font-size: 0.84rem;
-        color: var(--muted);
-        flex-grow: 1;
-        line-height: 1.55;
-    }
+/* Progress section */
+.prog-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 1.5rem 2rem;
+    box-shadow: var(--sh1);
+    margin-bottom: 1.25rem;
+    animation: fadeUp 0.4s ease 0.3s both;
+}
+.prog-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.7rem;
+}
+.prog-title { font-size: 0.88rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+.prog-sub   { font-size: 0.78rem; color: var(--muted2); font-weight: 400; }
+.prog-track {
+    height: 7px;
+    background: rgba(0,0,0,0.07);
+    border-radius: 99px;
+    overflow: hidden;
+}
+.prog-fill {
+    height: 7px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--blue), var(--purple));
+    animation: barGrow 0.9s ease 0.5s both;
+}
 
-    .status-tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        font-size: 0.72rem;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        padding: 0.22rem 0.6rem;
-        border-radius: 6px;
-        margin-top: 0.75rem;
-        width: fit-content;
-    }
-    .tag-active { background: rgba(34,197,94,0.12); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
-    .tag-locked { background: rgba(100,116,139,0.1); color: var(--muted);  border: 1px solid var(--border); }
+/* Data table */
+.dtable {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    overflow: hidden;
+    box-shadow: var(--sh1);
+    animation: fadeUp 0.4s ease 0.38s both;
+}
+.dtable th {
+    background: #fafafa;
+    padding: 0.8rem 1.5rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+}
+.dtable td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    color: var(--text);
+}
+.dtable tr:last-child td { border-bottom: none; }
+.dtable tr:hover td { background: rgba(0,113,227,0.02); }
 
-    /* ═══ BUTTONS ═══ */
-    div[data-testid="stButton"] > button {
-        font-family: 'Inter', sans-serif !important;
-        font-weight: 600 !important;
-        font-size: 0.85rem !important;
-        letter-spacing: 0.01em !important;
-        border-radius: 10px !important;
-        padding: 0.6rem 1.25rem !important;
-        border: 1px solid rgba(255,255,255,0.1) !important;
-        background: var(--surface2) !important;
-        color: var(--text) !important;
-        transition: all 0.2s ease !important;
-    }
-    div[data-testid="stButton"] > button:hover {
-        background: rgba(99,102,241,0.15) !important;
-        border-color: var(--indigo) !important;
-        color: #a5b4fc !important;
-        transform: translateY(-1px) !important;
-    }
-    div[data-testid="stButton"] > button:disabled {
-        opacity: 0.3 !important;
-        transform: none !important;
-    }
-
-    div[data-testid="stFormSubmitButton"] > button {
-        font-family: 'Inter', sans-serif !important;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 10px !important;
-        font-weight: 700 !important;
-        font-size: 0.9rem !important;
-        letter-spacing: 0.02em !important;
-        padding: 0.7rem 2rem !important;
-        transition: all 0.2s ease !important;
-        box-shadow: 0 4px 20px rgba(99,102,241,0.3) !important;
-    }
-    div[data-testid="stFormSubmitButton"] > button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 28px rgba(99,102,241,0.45) !important;
-    }
-
-    /* ═══ LESSON SECTIONS ═══ */
-    .lesson-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 1.75rem 2rem;
-        margin-bottom: 0.75rem;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .lesson-card::before {
-        content: '';
-        position: absolute;
-        left: 0; top: 0; bottom: 0;
-        width: 3px;
-        border-radius: 0 2px 2px 0;
-    }
-    .lc-indigo::before  { background: var(--indigo); }
-    .lc-emerald::before { background: var(--emerald); }
-    .lc-violet::before  { background: var(--violet); }
-
-    .lesson-label {
-        font-size: 0.65rem;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--muted);
-        margin-bottom: 0.4rem;
-    }
-
-    .lesson-heading {
-        font-size: 1.15rem;
-        font-weight: 700;
-        color: var(--text);
-        letter-spacing: -0.02em;
-        margin-bottom: 0.65rem;
-    }
-
-    .lesson-body {
-        font-size: 0.93rem;
-        color: var(--muted2);
-        line-height: 1.8;
-    }
-    .lesson-body strong {
-        color: var(--text);
-        font-weight: 600;
-    }
-
-    /* ═══ QUIZ ═══ */
-    .quiz-banner {
-        background: linear-gradient(135deg, #1e1b4b 0%, #1a1033 100%);
-        border: 1px solid rgba(99,102,241,0.25);
-        border-radius: 16px;
-        padding: 2rem 2.25rem;
-        margin-bottom: 1.5rem;
-        position: relative;
-        overflow: hidden;
-    }
-    .quiz-banner::before {
-        content: '?';
-        position: absolute;
-        right: 2rem; top: 50%;
-        transform: translateY(-50%);
-        font-size: 8rem;
-        font-weight: 900;
-        color: rgba(99,102,241,0.08);
-        line-height: 1;
-    }
-    .quiz-banner-tag {
-        font-size: 0.65rem;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: #818cf8;
-        margin-bottom: 0.4rem;
-    }
-    .quiz-banner-title {
-        font-size: 1.6rem;
-        font-weight: 800;
-        color: white;
-        letter-spacing: -0.03em;
-        margin-bottom: 0.35rem;
-    }
-    .quiz-banner-sub {
-        font-size: 0.85rem;
-        color: #6366f1;
-        font-weight: 500;
-    }
-
-    div[role="radiogroup"] {
-        background: var(--surface) !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 12px !important;
-        padding: 1.5rem 1.75rem !important;
-        margin-bottom: 0.6rem !important;
-    }
-
-    /* ═══ RESULT CARD ═══ */
-    .result-wrap {
-        border-radius: 16px;
-        padding: 2rem 2.25rem;
-        margin-top: 1.25rem;
-        position: relative;
-        overflow: hidden;
-    }
-    .result-pass { background: rgba(16,185,129,0.07); border: 1px solid rgba(16,185,129,0.2); }
-    .result-fail { background: rgba(239,68,68,0.07);  border: 1px solid rgba(239,68,68,0.2); }
-
-    .result-tag {
-        font-size: 0.65rem;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        margin-bottom: 0.5rem;
-    }
-    .tag-pass { color: var(--emerald); }
-    .tag-fail { color: var(--red); }
-
-    .result-score-big {
-        font-size: 4rem;
-        font-weight: 900;
-        letter-spacing: -0.05em;
-        line-height: 1;
-        margin-bottom: 0.4rem;
-    }
-    .score-pass { color: var(--emerald); }
-    .score-fail { color: var(--red); }
-
-    .result-score-denom {
-        font-size: 1.4rem;
-        color: var(--muted);
-        font-weight: 500;
-    }
-
-    .result-msg {
-        font-size: 0.9rem;
-        color: var(--muted2);
-        margin-top: 0.5rem;
-        line-height: 1.6;
-    }
-
-    /* ═══ STAT CARDS ═══ */
-    .stat-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 1.75rem 1.5rem;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-    }
-    .stat-glow {
-        position: absolute;
-        width: 120px; height: 120px;
-        border-radius: 50%;
-        top: -40px; left: 50%;
-        transform: translateX(-50%);
-        filter: blur(30px);
-        opacity: 0.25;
-        pointer-events: none;
-    }
-    .stat-value {
-        font-size: 3.2rem;
-        font-weight: 900;
-        letter-spacing: -0.05em;
-        color: var(--text);
-        line-height: 1;
-        margin-bottom: 0.4rem;
-    }
-    .stat-label {
-        font-size: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--muted);
-    }
-
-    /* ═══ PROGRESS BAR ═══ */
-    .prog-wrap {
-        height: 5px;
-        background: rgba(255,255,255,0.07);
-        border-radius: 99px;
-        overflow: hidden;
-        margin-top: 0.85rem;
-    }
-    .prog-fill {
-        height: 5px;
-        border-radius: 99px;
-        background: linear-gradient(90deg, #6366f1, #a855f7);
-    }
-
-    /* ═══ TABLE ═══ */
-    .d-table {
-        width: 100%;
-        border-collapse: collapse;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        overflow: hidden;
-        font-size: 0.9rem;
-    }
-    .d-table th {
-        background: rgba(255,255,255,0.03);
-        padding: 0.85rem 1.5rem;
-        text-align: left;
-        font-size: 0.65rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--muted);
-        border-bottom: 1px solid var(--border);
-    }
-    .d-table td {
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid var(--border);
-        color: var(--text);
-    }
-    .d-table tr:last-child td { border-bottom: none; }
-    .d-table tr:hover td { background: rgba(255,255,255,0.015); }
-
-    /* ═══ DIVIDER ═══ */
-    hr {
-        border: none !important;
-        border-top: 1px solid var(--border) !important;
-        margin: 2rem 0 !important;
-    }
-
-    /* ═══ PAGE TITLE AREA ═══ */
-    .module-page-header {
-        margin-bottom: 2rem;
-    }
-    .module-page-eyebrow {
-        font-size: 0.68rem;
-        font-weight: 700;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    .module-page-eyebrow::before {
-        content: '';
-        display: inline-block;
-        width: 16px; height: 2px;
-        border-radius: 2px;
-    }
-    .module-page-title {
-        font-size: 2.6rem;
-        font-weight: 900;
-        letter-spacing: -0.04em;
-        color: var(--text);
-        margin-bottom: 0;
-        line-height: 1.05;
-    }
-
-    /* ═══ DECORATIVE SECTION DIVIDER ═══ */
-    .section-label-row {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin: 2rem 0 1rem;
-    }
-    .section-label-text {
-        font-size: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--muted);
-        white-space: nowrap;
-    }
-    .section-label-line {
-        flex-grow: 1;
-        height: 1px;
-        background: var(--border);
-    }
-
-    p { color: var(--muted2) !important; line-height: 1.7 !important; }
-    h1, h2, h3 { color: var(--text) !important; font-weight: 800 !important; letter-spacing: -0.03em !important; }
-
-    /* Alert styling */
-    div[data-testid="stAlert"] { border-radius: 12px !important; }
-
-    /* Sidebar gone */
-    section[data-testid="stSidebar"] { display: none !important; }
+/* ═══ MISC ══════════════════════════════ */
+hr { border: none !important; border-top: 1px solid var(--border) !important; margin: 2rem 0 !important; }
+p { color: var(--muted) !important; line-height: 1.7 !important; }
+h1, h2, h3 { color: var(--text) !important; font-weight: 800 !important; letter-spacing: -0.03em !important; }
+div[data-testid="stAlert"] { border-radius: 12px !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Session state ────────────────────────────────────────────────────────────
+# ── Session state ─────────────────────────────────────────────────────────
 if 'current_view' not in st.session_state:
     st.session_state.current_view = 'dashboard'
 if 'unlocked_modules' not in st.session_state:
     st.session_state.unlocked_modules = ['module_1']
-for m in ['1', '2', '3']:
-    for k in ['quiz_started', 'quiz_submitted', 'quiz_score']:
-        key = f'm{m}_{k}'
-        if key not in st.session_state:
-            st.session_state[key] = False if k != 'quiz_score' else 0
+for _m in ['1', '2', '3']:
+    for _k, _d in [('quiz_started', False), ('quiz_submitted', False), ('quiz_score', 0)]:
+        if f'm{_m}_{_k}' not in st.session_state:
+            st.session_state[f'm{_m}_{_k}'] = _d
 
 def navigate(view):
     st.session_state.current_view = view
 
-# ── Quiz Data ────────────────────────────────────────────────────────────────
-M1_QUIZ_DATA = [
-    {"question": "What do we call the specific time and place where a story happens?",       "options": ["The Plot", "The Characters", "The Setting", "The Title"],                  "answer": "The Setting"},
-    {"question": "Where is the main idea of a paragraph usually located?",                   "options": ["In the middle", "At the very end", "In the topic sentence", "In the dictionary"], "answer": "In the topic sentence"},
-    {"question": "What are hints around a new word that help you understand its meaning?",   "options": ["Context clues", "Story settings", "Hidden numbers", "Spelling words"],    "answer": "Context clues"},
-    {"question": "Who are the people or animals that take part in a story?",                 "options": ["The Authors", "The Readers", "The Characters", "The Settings"],           "answer": "The Characters"},
-    {"question": "What is the sequence of events from beginning to end of a story called?", "options": ["The Plot", "The Cover", "The Vocabulary", "The Conclusion"],              "answer": "The Plot"},
+# ── Quiz data ─────────────────────────────────────────────────────────────
+M1 = [
+    {"q": "What do we call the specific time and place where a story happens?",       "o": ["The Plot","The Characters","The Setting","The Title"],                  "a": "The Setting"},
+    {"q": "Where is the main idea of a paragraph usually located?",                   "o": ["In the middle","At the very end","In the topic sentence","In the dictionary"], "a": "In the topic sentence"},
+    {"q": "What are hints around a new word that help you understand its meaning?",   "o": ["Context clues","Story settings","Hidden numbers","Spelling words"],    "a": "Context clues"},
+    {"q": "Who are the people or animals that take part in a story?",                 "o": ["The Authors","The Readers","The Characters","The Settings"],           "a": "The Characters"},
+    {"q": "What is the sequence of events from beginning to end of a story called?",  "o": ["The Plot","The Cover","The Vocabulary","The Conclusion"],              "a": "The Plot"},
 ]
-M2_QUIZ_DATA = [
-    {"question": "What is the total sum when you combine 145 and 278?",           "options": ["423", "413", "433", "323"],                                                                  "answer": "423"},
-    {"question": "What is the perimeter of a square if one side measures 9 units?", "options": ["18 units", "27 units", "36 units", "81 units"],                                          "answer": "36 units"},
-    {"question": "In the fraction 3/4, what does the number 4 represent?",        "options": ["The part we have", "The total equal parts in the whole", "The sum", "The difference"],    "answer": "The total equal parts in the whole"},
-    {"question": "What is the product of 15 multiplied by 8?",                    "options": ["100", "110", "120", "130"],                                                                 "answer": "120"},
-    {"question": "What is the mathematical term for a flat shape with straight sides?", "options": ["Circle", "Sphere", "Polygon", "Line"],                                               "answer": "Polygon"},
+M2 = [
+    {"q": "What is the total sum when you combine 145 and 278?",               "o": ["423","413","433","323"],                                                               "a": "423"},
+    {"q": "What is the perimeter of a square if one side measures 9 units?",   "o": ["18 units","27 units","36 units","81 units"],                                           "a": "36 units"},
+    {"q": "In the fraction 3/4, what does the number 4 represent?",            "o": ["The part we have","The total equal parts in the whole","The sum","The difference"],   "a": "The total equal parts in the whole"},
+    {"q": "What is the product of 15 multiplied by 8?",                        "o": ["100","110","120","130"],                                                               "a": "120"},
+    {"q": "What is the mathematical term for a flat shape with straight sides?","o": ["Circle","Sphere","Polygon","Line"],                                                   "a": "Polygon"},
 ]
-M3_QUIZ_DATA = [
-    {"question": "What process changes liquid water into an invisible gas?",          "options": ["Condensation", "Evaporation", "Precipitation", "Freezing"],  "answer": "Evaporation"},
-    {"question": "What provides the main energy that powers the water cycle?",        "options": ["The Moon", "The Wind", "The Sun", "The Ocean"],              "answer": "The Sun"},
-    {"question": "What forms in the sky when water vapor cools and condenses?",       "options": ["Raindrops", "Clouds", "Rivers", "Groundwater"],              "answer": "Clouds"},
-    {"question": "Which of the following is an example of precipitation?",            "options": ["Snow falling", "A puddle drying", "Water boiling", "Ice melting"], "answer": "Snow falling"},
-    {"question": "Where does a large amount of water collect underground?",           "options": ["Aquifer", "Cloud", "Atmosphere", "Evaporator"],              "answer": "Aquifer"},
+M3 = [
+    {"q": "What process changes liquid water into an invisible gas?",         "o": ["Condensation","Evaporation","Precipitation","Freezing"],  "a": "Evaporation"},
+    {"q": "What provides the main energy that powers the water cycle?",       "o": ["The Moon","The Wind","The Sun","The Ocean"],              "a": "The Sun"},
+    {"q": "What forms in the sky when water vapor cools and condenses?",      "o": ["Raindrops","Clouds","Rivers","Groundwater"],              "a": "Clouds"},
+    {"q": "Which of the following is an example of precipitation?",           "o": ["Snow falling","A puddle drying","Water boiling","Ice melting"], "a": "Snow falling"},
+    {"q": "Where does a large amount of water collect underground?",          "o": ["Aquifer","Cloud","Atmosphere","Evaporator"],              "a": "Aquifer"},
 ]
 
 
 # ═══════════════════════════════════════════════════════════════════
-#  HELPER: render_module — must be defined before if/elif chain
+#  HELPER — must live above the if/elif chain
 # ═══════════════════════════════════════════════════════════════════
-def render_module(m_num, title, eyebrow, icon, accent, accent_soft, lc_class, sections, quiz_data):
-    st.button("← Back to Dashboard", key=f"back_m{m_num}", on_click=navigate, args=('dashboard',))
-    st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+def render_module(m_num, title, eyebrow, icon, accent, lc_cls, qb_cls, sections, quiz_data):
+    """Renders a full module page: header → lessons → assessment."""
+
+    st.button("← Dashboard", key=f"back_{m_num}", on_click=navigate, args=('dashboard',))
+    st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
 
     st.markdown(f"""
-    <div class="module-page-header">
-        <div class="module-page-eyebrow" style="color:{accent};">
-            <span style="background:{accent}; width:16px; height:2px; border-radius:2px; display:inline-block;"></span>
+    <div class="mod-header">
+        <div class="mod-eyebrow" style="color:{accent};">
+            <span class="mod-eyebrow-line" style="background:{accent};"></span>
             {eyebrow}
         </div>
-        <div class="module-page-title">{icon} {title}</div>
+        <div class="mod-title">{icon} {title}</div>
     </div>
     """, unsafe_allow_html=True)
 
-    for i, (label, heading, body) in enumerate(sections):
+    anim_cls = ["lc-anim-1", "lc-anim-2", "lc-anim-3"]
+    for i, (lbl, heading, body) in enumerate(sections):
         st.markdown(f"""
-        <div class="lesson-card {lc_class}">
-            <div class="lesson-label">{label}</div>
-            <div class="lesson-heading">{heading}</div>
-            <div class="lesson-body">{body}</div>
+        <div class="lc {lc_cls} {anim_cls[i]}">
+            <div class="lc-label">{lbl}</div>
+            <div class="lc-heading">{heading}</div>
+            <div class="lc-body">{body}</div>
         </div>
         """, unsafe_allow_html=True)
 
-    # divider with label
     st.markdown("""
-    <div class="section-label-row">
-        <span class="section-label-text">Assessment</span>
-        <span class="section-label-line"></span>
+    <div class="sep">
+        <span class="sep-text">Assessment</span>
+        <span class="sep-line"></span>
     </div>
     """, unsafe_allow_html=True)
 
-    started_key   = f'm{m_num}_quiz_started'
-    submitted_key = f'm{m_num}_quiz_submitted'
-    score_key     = f'm{m_num}_quiz_score'
-    start_btn     = f'start_m{m_num}_quiz'
-    retake_btn    = f'retake_m{m_num}'
-    next_module   = f'module_{int(m_num)+1}'
+    sk_started   = f'm{m_num}_quiz_started'
+    sk_submitted = f'm{m_num}_quiz_submitted'
+    sk_score     = f'm{m_num}_quiz_score'
+    btn_start    = f'start_{m_num}'
+    btn_retry    = f'retry_{m_num}'
+    next_mod     = f'module_{int(m_num) + 1}'
 
-    if not st.session_state[started_key]:
+    if not st.session_state[sk_started]:
         st.markdown("""
-        <div style="text-align:center; padding:1.5rem 0 0.75rem;">
-            <p style="font-size:0.88rem; color:var(--muted) !important; margin:0;">
-                Read through all sections above, then take the 5-question quiz.
-            </p>
-        </div>
+        <p style="text-align:center; font-size:0.875rem; margin-bottom:0.75rem !important;">
+            Finished reading? Test your understanding with 5 questions.
+        </p>
         """, unsafe_allow_html=True)
-        c1, c2, c3 = st.columns([1.5, 1, 1.5])
+        c1, c2, c3 = st.columns([1.8, 1, 1.8])
         with c2:
-            st.button("Start Quiz →", key=start_btn, use_container_width=True)
-        if st.session_state.get(start_btn):
-            st.session_state[started_key] = True
+            st.button("Begin Quiz →", key=btn_start, use_container_width=True)
+        if st.session_state.get(btn_start):
+            st.session_state[sk_started] = True
             st.rerun()
 
-    if st.session_state[started_key]:
+    if st.session_state[sk_started]:
         st.markdown(f"""
-        <div class="quiz-banner">
-            <div class="quiz-banner-tag">Formative Evaluation</div>
-            <div class="quiz-banner-title">Knowledge Check</div>
-            <div class="quiz-banner-sub">5 questions &nbsp;·&nbsp; Choose one answer each</div>
+        <div class="quiz-banner {qb_cls}">
+            <div class="qb-tag">Formative Evaluation</div>
+            <div class="qb-title">Knowledge Check</div>
+            <div class="qb-sub">5 questions &nbsp;·&nbsp; Select the best answer for each</div>
         </div>
         """, unsafe_allow_html=True)
 
-        with st.form(key=f'm{m_num}_quiz_form', clear_on_submit=False):
-            user_answers = []
+        with st.form(key=f'form_{m_num}', clear_on_submit=False):
+            answers = []
             for i, q in enumerate(quiz_data):
-                st.markdown(f"**{i+1}.&nbsp; {q['question']}**")
-                ans = st.radio("", q["options"], key=f"m{m_num}_q_{i}",
-                               label_visibility="collapsed", index=None)
-                user_answers.append(ans)
+                st.markdown(f"**{i+1}.&nbsp; {q['q']}**")
+                a = st.radio("", q['o'], key=f"q_{m_num}_{i}",
+                             label_visibility="collapsed", index=None)
+                answers.append(a)
                 if i < len(quiz_data) - 1:
-                    st.markdown("<div style='height:0.25rem'></div>", unsafe_allow_html=True)
+                    st.markdown("<div style='height:0.15rem'></div>", unsafe_allow_html=True)
             st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-            submit = st.form_submit_button("Submit Answers", use_container_width=False)
+            submitted = st.form_submit_button("Submit Answers")
 
-        if submit:
-            if None in user_answers:
-                st.error("Answer all 5 questions before submitting.")
+        if submitted:
+            if None in answers:
+                st.error("Please answer every question before submitting.")
             else:
-                score = sum(1 for i, q in enumerate(quiz_data) if user_answers[i] == q["answer"])
-                st.session_state[score_key] = score
-                st.session_state[submitted_key] = True
+                score = sum(1 for i, q in enumerate(quiz_data) if answers[i] == q['a'])
+                st.session_state[sk_score] = score
+                st.session_state[sk_submitted] = True
 
-        if st.session_state[submitted_key]:
-            sc     = st.session_state[score_key]
+        if st.session_state[sk_submitted]:
+            sc = st.session_state[sk_score]
             passed = sc >= 4
-            cls    = "result-pass" if passed else "result-fail"
-            tag_c  = "tag-pass"   if passed else "tag-fail"
-            sc_c   = "score-pass" if passed else "score-fail"
-            tag_t  = "✓ Competency Verified" if passed else "✗ Below Threshold"
-            msg    = "Great job — the next module has been unlocked for you." if passed else "Review the lesson sections above and give it another try."
+            rc  = "rc-pass" if passed else "rc-fail"
+            rt  = "rt-pass" if passed else "rt-fail"
+            rs  = "rs-pass" if passed else "rs-fail"
+            tag = "✓ Competency Verified" if passed else "✗ Below Threshold"
+            msg = "Well done — the next module has been unlocked." if passed else "Review the lesson material above and try again."
 
             st.markdown(f"""
-            <div class="result-wrap {cls}">
-                <div class="result-tag {tag_c}">{tag_t}</div>
+            <div class="result-card {rc}">
+                <div class="rc-tag {rt}">{tag}</div>
                 <div>
-                    <span class="result-score-big {sc_c}">{sc}</span>
-                    <span class="result-score-denom"> / {len(quiz_data)}</span>
+                    <span class="rc-score {rs}">{sc}</span>
+                    <span class="rc-denom"> / {len(quiz_data)}</span>
                 </div>
-                <div class="result-msg">{msg}</div>
+                <div class="rc-msg">{msg}</div>
             </div>
             """, unsafe_allow_html=True)
 
-            if passed and int(m_num) < 3 and next_module not in st.session_state.unlocked_modules:
-                st.session_state.unlocked_modules.append(next_module)
+            if passed and int(m_num) < 3 and next_mod not in st.session_state.unlocked_modules:
+                st.session_state.unlocked_modules.append(next_mod)
 
             if not passed:
-                st.markdown("<div style='height:0.75rem'></div>", unsafe_allow_html=True)
-                c1, c2, c3 = st.columns([1.5, 1, 1.5])
+                st.markdown("<div style='height:0.6rem'></div>", unsafe_allow_html=True)
+                c1, c2, c3 = st.columns([1.8, 1, 1.8])
                 with c2:
-                    st.button("Retry Quiz", key=retake_btn, use_container_width=True)
-                if st.session_state.get(retake_btn):
-                    st.session_state[submitted_key] = False
+                    st.button("Retry Quiz", key=btn_retry, use_container_width=True)
+                if st.session_state.get(btn_retry):
+                    st.session_state[sk_submitted] = False
                     st.rerun()
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  SIDEBAR
+# ═══════════════════════════════════════════════════════════════════
+_cur = st.session_state.current_view
+_m2_ok = 'module_2' in st.session_state.unlocked_modules
+_m3_ok = 'module_3' in st.session_state.unlocked_modules
+_done = sum([
+    st.session_state.m1_quiz_submitted and st.session_state.m1_quiz_score >= 4,
+    st.session_state.m2_quiz_submitted and st.session_state.m2_quiz_score >= 4,
+    st.session_state.m3_quiz_submitted and st.session_state.m3_quiz_score >= 4,
+])
+_pct = int(_done / 3 * 100)
+
+def _dot(mn):
+    if st.session_state[f'm{mn}_quiz_submitted'] and st.session_state[f'm{mn}_quiz_score'] >= 4:
+        return "dot-done"
+    if f'module_{mn}' in st.session_state.unlocked_modules:
+        return "dot-active"
+    return "dot-none"
+
+def _active_row(icon, label, dot_cls):
+    st.markdown(f"""
+    <div class="nav-row nav-active">
+        <span class="nav-icon">{icon}</span>
+        <span class="nav-label">{label}</span>
+        <span class="nav-dot {dot_cls}"></span>
+    </div>
+    """, unsafe_allow_html=True)
+
+def _locked_row(icon, label):
+    st.markdown(f"""
+    <div class="nav-row nav-locked">
+        <span class="nav-icon">🔒</span>
+        <span class="nav-label">{label}</span>
+        <span class="nav-dot dot-none"></span>
+    </div>
+    """, unsafe_allow_html=True)
+
+with st.sidebar:
+    st.markdown("""
+    <div class="sb-brand">
+        <div class="sb-logo"><span class="grd">DANILO</span></div>
+        <div class="sb-tagline">Academic Platform</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="sb-section">Navigation</div>', unsafe_allow_html=True)
+
+    # Dashboard
+    if _cur == 'dashboard':
+        _active_row("⊞", "Dashboard", "dot-active")
+    else:
+        st.button("⊞  Dashboard", key="nav_dash", on_click=navigate,
+                  args=('dashboard',), use_container_width=True)
+
+    st.markdown('<div class="sb-section" style="padding-top:0.6rem;">Curriculum</div>', unsafe_allow_html=True)
+
+    # Reading
+    if _cur == 'module_1':
+        _active_row("📖", "Reading", _dot('1'))
+    else:
+        st.button("📖  Reading", key="nav_m1", on_click=navigate,
+                  args=('module_1',), use_container_width=True)
+
+    # Mathematics
+    if _cur == 'module_2':
+        _active_row("📐", "Mathematics", _dot('2'))
+    elif _m2_ok:
+        st.button("📐  Mathematics", key="nav_m2", on_click=navigate,
+                  args=('module_2',), use_container_width=True)
+    else:
+        _locked_row("📐", "Mathematics")
+
+    # Natural Sciences
+    if _cur == 'module_3':
+        _active_row("🌊", "Natural Sciences", _dot('3'))
+    elif _m3_ok:
+        st.button("🌊  Natural Sciences", key="nav_m3", on_click=navigate,
+                  args=('module_3',), use_container_width=True)
+    else:
+        _locked_row("🌊", "Natural Sciences")
+
+    st.markdown('<div class="sb-section" style="padding-top:0.6rem;">Records</div>', unsafe_allow_html=True)
+
+    # Metrics
+    if _cur == 'profile':
+        _active_row("📊", "Metrics", "dot-none")
+    else:
+        st.button("📊  Metrics", key="nav_prof", on_click=navigate,
+                  args=('profile',), use_container_width=True)
+
+    # Progress footer
+    st.markdown(f"""
+    <div class="sb-progress">
+        <div class="sb-prog-head">
+            <span class="sb-prog-label">Progress</span>
+            <span class="sb-prog-pct">{_pct}%</span>
+        </div>
+        <div class="sb-track">
+            <div class="sb-fill" style="--bar-w:{_pct}%; width:{_pct}%;"></div>
+        </div>
+        <div class="sb-modules-done">{_done} of 3 modules completed</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -705,118 +1123,118 @@ def render_module(m_num, title, eyebrow, icon, accent, accent_soft, lc_class, se
 # ═══════════════════════════════════════════════════════════════════
 if st.session_state.current_view == 'dashboard':
 
-    # Quick stats
-    completed = sum([
-        st.session_state.m1_quiz_submitted and st.session_state.m1_quiz_score >= 4,
-        st.session_state.m2_quiz_submitted and st.session_state.m2_quiz_score >= 4,
-        st.session_state.m3_quiz_submitted and st.session_state.m3_quiz_score >= 4,
-    ])
-    pct = int(completed / 3 * 100)
-
-    st.markdown(f"""
-    <div style="margin-bottom: 3rem;">
-        <div class="eyebrow">Academic Platform</div>
-        <div class="hero-title"><span>DANILO</span></div>
+    st.markdown("""
+    <div class="hero">
+        <div class="hero-eyebrow">Academic Platform</div>
+        <div class="hero-title">
+            Learn, Test &amp; <span class="grd">Unlock.</span>
+        </div>
         <div class="hero-sub">
-            A structured curriculum with sequential modules.<br>
-            Unlock the next subject by mastering the current one.
+            A sequential curriculum that rewards mastery.
+            Pass each module's assessment to advance to the next.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Three module cards ──
     col1, col2, col3 = st.columns(3, gap="medium")
 
     with col1:
         st.markdown("""
-        <div class="module-card card-indigo" data-num="01">
-            <span class="card-num-badge">01</span>
-            <div class="card-icon-wrap icon-indigo">📖</div>
-            <div class="card-title">Reading</div>
-            <div class="card-desc">Story elements, main ideas &amp; context clues.</div>
-            <div class="status-tag tag-active">● Unlocked</div>
+        <div class="mc mc-blue mc-anim-1">
+            <span class="mc-num">01</span>
+            <span class="mc-ghost">01</span>
+            <div class="mc-icon i-blue">📖</div>
+            <div class="mc-title">Reading</div>
+            <div class="mc-desc">Story elements, main ideas &amp; context clues.</div>
+            <div class="mc-status ms-on">● Unlocked</div>
         </div>
         """, unsafe_allow_html=True)
-        st.button("Open Module →", key="btn_m1", on_click=navigate, args=('module_1',), use_container_width=True)
+        st.button("Open →", key="db_m1", on_click=navigate,
+                  args=('module_1',), use_container_width=True)
 
     with col2:
-        m2_locked = 'module_2' not in st.session_state.unlocked_modules
-        tag2 = '<div class="status-tag tag-locked">🔒 Requires Reading</div>' if m2_locked else '<div class="status-tag tag-active">● Unlocked</div>'
+        locked2 = 'module_2' not in st.session_state.unlocked_modules
+        tag2 = '<div class="mc-status ms-off">🔒 Requires Reading</div>' if locked2 \
+               else '<div class="mc-status ms-on">● Unlocked</div>'
+        extra2 = "mc-locked" if locked2 else ""
         st.markdown(f"""
-        <div class="module-card card-emerald" data-num="02" style="{'opacity:0.45;' if m2_locked else ''}">
-            <span class="card-num-badge">02</span>
-            <div class="card-icon-wrap icon-emerald">📐</div>
-            <div class="card-title">Mathematics</div>
-            <div class="card-desc">Operations, fractions &amp; geometry basics.</div>
+        <div class="mc mc-green mc-anim-2 {extra2}">
+            <span class="mc-num">02</span>
+            <span class="mc-ghost">02</span>
+            <div class="mc-icon i-green">📐</div>
+            <div class="mc-title">Mathematics</div>
+            <div class="mc-desc">Operations, fractions &amp; geometry.</div>
             {tag2}
         </div>
         """, unsafe_allow_html=True)
-        st.button("Open Module →", key="btn_m2", on_click=navigate, args=('module_2',), disabled=m2_locked, use_container_width=True)
+        st.button("Open →", key="db_m2", on_click=navigate,
+                  args=('module_2',), disabled=locked2, use_container_width=True)
 
     with col3:
-        m3_locked = 'module_3' not in st.session_state.unlocked_modules
-        tag3 = '<div class="status-tag tag-locked">🔒 Requires Mathematics</div>' if m3_locked else '<div class="status-tag tag-active">● Unlocked</div>'
+        locked3 = 'module_3' not in st.session_state.unlocked_modules
+        tag3 = '<div class="mc-status ms-off">🔒 Requires Mathematics</div>' if locked3 \
+               else '<div class="mc-status ms-on">● Unlocked</div>'
+        extra3 = "mc-locked" if locked3 else ""
         st.markdown(f"""
-        <div class="module-card card-violet" data-num="03" style="{'opacity:0.45;' if m3_locked else ''}">
-            <span class="card-num-badge">03</span>
-            <div class="card-icon-wrap icon-violet">🌊</div>
-            <div class="card-title">Natural Sciences</div>
-            <div class="card-desc">The water cycle and Earth's hydrosphere.</div>
+        <div class="mc mc-purple mc-anim-3 {extra3}">
+            <span class="mc-num">03</span>
+            <span class="mc-ghost">03</span>
+            <div class="mc-icon i-purple">🌊</div>
+            <div class="mc-title">Natural Sciences</div>
+            <div class="mc-desc">The water cycle &amp; Earth's hydrosphere.</div>
             {tag3}
         </div>
         """, unsafe_allow_html=True)
-        st.button("Open Module →", key="btn_m3", on_click=navigate, args=('module_3',), disabled=m3_locked, use_container_width=True)
+        st.button("Open →", key="db_m3", on_click=navigate,
+                  args=('module_3',), disabled=locked3, use_container_width=True)
 
-    # ── Bottom: Metrics card ──
     st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-    col4, col5 = st.columns([1, 2], gap="medium")
+    col4, col5 = st.columns([1, 1.65], gap="medium")
 
     with col4:
         st.markdown(f"""
-        <div class="module-card card-amber" data-num="" style="height:auto; min-height:180px;">
-            <span class="card-num-badge">Analytics</span>
-            <div class="card-icon-wrap icon-amber">📊</div>
-            <div class="card-title">Academic Metrics</div>
-            <div class="card-desc">Performance records and curriculum logs.</div>
-            <div class="prog-wrap"><div class="prog-fill" style="width:{pct}%"></div></div>
-            <div style="font-size:0.72rem; color:var(--muted); margin-top:0.45rem; font-weight:600;">
-                {pct}% Complete &nbsp;·&nbsp; {completed}/3 modules passed
+        <div class="mc mc-amber mc-anim-4" style="height:auto; min-height:160px;">
+            <span class="mc-ghost"></span>
+            <div class="mc-icon i-amber">📊</div>
+            <div class="mc-title">Academic Metrics</div>
+            <div class="mc-desc">Performance records &amp; curriculum logs.</div>
+            <div style="margin-top:0.7rem;">
+                <div style="display:flex;justify-content:space-between;
+                            font-size:0.7rem;font-weight:600;color:var(--muted2);margin-bottom:0.4rem;">
+                    <span>Progress</span><span>{_pct}%</span>
+                </div>
+                <div class="prog-track">
+                    <div class="prog-fill" style="--bar-w:{_pct}%; width:{_pct}%;"></div>
+                </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
-        st.button("View Metrics →", key="btn_profile", on_click=navigate, args=('profile',), use_container_width=True)
+        st.button("View Metrics →", key="db_prof", on_click=navigate,
+                  args=('profile',), use_container_width=True)
 
     with col5:
-        # Decorative info block
-        st.markdown(f"""
-        <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px;
-                    padding:1.75rem 2rem; height:100%; min-height:180px; position:relative; overflow:hidden;">
-            <div style="position:absolute; right:-20px; bottom:-20px; width:160px; height:160px;
-                        border-radius:50%; background:radial-gradient(circle, rgba(99,102,241,0.12), transparent 70%);
-                        pointer-events:none;"></div>
-            <div style="font-size:0.65rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase;
-                        color:var(--muted); margin-bottom:1rem;">How it works</div>
-            <div style="display:flex; flex-direction:column; gap:0.65rem;">
-                <div style="display:flex; align-items:flex-start; gap:0.75rem;">
-                    <div style="background:var(--indigo-soft); color:#818cf8; font-size:0.72rem; font-weight:700;
-                                border-radius:6px; padding:0.2rem 0.5rem; flex-shrink:0; margin-top:1px;">01</div>
-                    <div style="font-size:0.88rem; color:var(--muted2); line-height:1.5;">
-                        Read through the lesson material in each module.
-                    </div>
+        st.markdown("""
+        <div class="how-panel">
+            <div class="how-title">How it works</div>
+            <div class="how-step">
+                <div class="how-num hn-blue">01</div>
+                <div class="how-text">
+                    <strong style="color:var(--text);font-weight:600;">Read</strong> —
+                    Work through the lesson material inside each module.
                 </div>
-                <div style="display:flex; align-items:flex-start; gap:0.75rem;">
-                    <div style="background:var(--emerald-soft); color:#34d399; font-size:0.72rem; font-weight:700;
-                                border-radius:6px; padding:0.2rem 0.5rem; flex-shrink:0; margin-top:1px;">02</div>
-                    <div style="font-size:0.88rem; color:var(--muted2); line-height:1.5;">
-                        Pass the 5-question quiz with a score of 4 or higher.
-                    </div>
+            </div>
+            <div class="how-step">
+                <div class="how-num hn-green">02</div>
+                <div class="how-text">
+                    <strong style="color:var(--text);font-weight:600;">Test</strong> —
+                    Score 4 out of 5 on the formative quiz to pass.
                 </div>
-                <div style="display:flex; align-items:flex-start; gap:0.75rem;">
-                    <div style="background:var(--violet-soft); color:#c084fc; font-size:0.72rem; font-weight:700;
-                                border-radius:6px; padding:0.2rem 0.5rem; flex-shrink:0; margin-top:1px;">03</div>
-                    <div style="font-size:0.88rem; color:var(--muted2); line-height:1.5;">
-                        Unlock the next subject and continue your progress.
-                    </div>
+            </div>
+            <div class="how-step">
+                <div class="how-num hn-purple">03</div>
+                <div class="how-text">
+                    <strong style="color:var(--text);font-weight:600;">Unlock</strong> —
+                    Passing a module opens the next subject automatically.
                 </div>
             </div>
         </div>
@@ -828,25 +1246,22 @@ if st.session_state.current_view == 'dashboard':
 # ═══════════════════════════════════════════════════════════════════
 elif st.session_state.current_view == 'module_1':
     render_module(
-        m_num='1', title='Reading', eyebrow='Module 01 — Language Arts',
-        icon='📖', accent='#6366f1', accent_soft='rgba(99,102,241,0.12)',
-        lc_class='lc-indigo',
+        m_num='1', title='Reading',
+        eyebrow='Module 01 · Language Arts', icon='📖',
+        accent='#0071e3', lc_cls='lc-blue', qb_cls='qb-blue',
         sections=[
             ("Section 1.0", "Elements of a Story",
-             "Every story has essential parts that help us understand what is happening. "
-             "The <strong>setting</strong> tells us when and where the story takes place. "
+             "Every story has essential parts. The <strong>setting</strong> tells us when and where the story takes place. "
              "The <strong>characters</strong> are the people, animals, or creatures in the story. "
-             "The <strong>plot</strong> is the sequence of events from the beginning to the end."),
+             "The <strong>plot</strong> is the sequence of events from beginning to end."),
             ("Section 1.1", "Finding the Main Idea",
-             "When reading a paragraph, it is important to find the <strong>main idea</strong> — the primary "
-             "point the author wants to communicate. It is often found in the <strong>topic sentence</strong>, "
-             "which is usually the first sentence of the paragraph."),
+             "The <strong>main idea</strong> is the primary point an author wants to communicate. "
+             "It is often found in the <strong>topic sentence</strong> — usually the first sentence of a paragraph."),
             ("Section 1.2", "Using Context Clues",
-             "Sometimes you will read a word you do not know. Instead of immediately looking it up, "
-             "examine the surrounding words for hints. "
+             "When you encounter an unfamiliar word, examine the surrounding words for hints about its meaning. "
              "These helpful hints are called <strong>context clues</strong>."),
         ],
-        quiz_data=M1_QUIZ_DATA
+        quiz_data=M1
     )
 
 
@@ -855,24 +1270,22 @@ elif st.session_state.current_view == 'module_1':
 # ═══════════════════════════════════════════════════════════════════
 elif st.session_state.current_view == 'module_2':
     render_module(
-        m_num='2', title='Mathematics', eyebrow='Module 02 — Quantitative Reasoning',
-        icon='📐', accent='#10b981', accent_soft='rgba(16,185,129,0.12)',
-        lc_class='lc-emerald',
+        m_num='2', title='Mathematics',
+        eyebrow='Module 02 · Quantitative Reasoning', icon='📐',
+        accent='#34c759', lc_cls='lc-green', qb_cls='qb-green',
         sections=[
             ("Section 2.0", "Basic Operations",
-             "Mathematics uses operations to solve problems. <strong>Addition</strong> combines two numbers "
-             "to find a total sum. <strong>Subtraction</strong> finds the difference. "
-             "<strong>Multiplication</strong> is a faster method of repeated addition."),
+             "<strong>Addition</strong> combines two numbers into a sum. "
+             "<strong>Subtraction</strong> finds the difference. "
+             "<strong>Multiplication</strong> is a faster form of repeated addition."),
             ("Section 2.1", "Understanding Fractions",
-             "A fraction represents a part of a whole. The top number (<strong>numerator</strong>) shows "
-             "how many parts we have. The bottom number (<strong>denominator</strong>) shows how many "
-             "equal parts make up the entire whole. The denominator can never be zero."),
+             "A fraction represents part of a whole. The <strong>numerator</strong> (top) shows parts we have; "
+             "the <strong>denominator</strong> (bottom) shows total equal parts. The denominator can never be zero."),
             ("Section 2.2", "Basic Geometry",
-             "Geometry is the study of shapes and spaces. A <strong>polygon</strong> is a flat shape with "
-             "straight sides — like a triangle, square, or rectangle. The distance around the outside "
-             "edge of a shape is called the <strong>perimeter</strong>."),
+             "A <strong>polygon</strong> is any flat, closed shape with straight sides — triangles, squares, rectangles. "
+             "The total distance around the outside edge of a shape is its <strong>perimeter</strong>."),
         ],
-        quiz_data=M2_QUIZ_DATA
+        quiz_data=M2
     )
 
 
@@ -881,153 +1294,121 @@ elif st.session_state.current_view == 'module_2':
 # ═══════════════════════════════════════════════════════════════════
 elif st.session_state.current_view == 'module_3':
     render_module(
-        m_num='3', title='Natural Sciences', eyebrow='Module 03 — Earth Science',
-        icon='🌊', accent='#a855f7', accent_soft='rgba(168,85,247,0.12)',
-        lc_class='lc-violet',
+        m_num='3', title='Natural Sciences',
+        eyebrow='Module 03 · Earth Science', icon='🌊',
+        accent='#af52de', lc_cls='lc-purple', qb_cls='qb-purple',
         sections=[
-            ("Section 3.0", "Introduction to the Water Cycle",
-             "The water cycle is the continuous movement of water on Earth. Water changes its state as it "
-             "moves between the ground, the oceans, and the sky. The amount of water on our planet stays "
-             "mostly the same — it simply travels to different places."),
+            ("Section 3.0", "The Water Cycle",
+             "Water continuously moves between the ground, oceans, and sky. "
+             "The total amount of water on Earth stays roughly constant — it simply changes location and state."),
             ("Section 3.1", "Evaporation & Condensation",
-             "<strong>Evaporation</strong> occurs when the sun heats liquid water, turning it into water "
-             "vapor — an invisible gas. When vapor rises and cools, it undergoes "
-             "<strong>condensation</strong>, forming the clouds we see overhead."),
+             "The sun heats liquid water, turning it into invisible <strong>water vapor</strong> — this is <strong>evaporation</strong>. "
+             "As vapor rises and cools, it forms clouds through <strong>condensation</strong>."),
             ("Section 3.2", "Precipitation & Collection",
-             "When clouds accumulate too much water, it falls back to Earth as "
-             "<strong>precipitation</strong> — rain, snow, or hail. This water collects in oceans, lakes, "
-             "and underground reservoirs called <strong>aquifers</strong>, ready to restart the cycle."),
+             "When clouds hold too much water, it falls as <strong>precipitation</strong> (rain, snow, hail). "
+             "Water collects in oceans, lakes, and underground <strong>aquifers</strong>, restarting the cycle."),
         ],
-        quiz_data=M3_QUIZ_DATA
+        quiz_data=M3
     )
 
 
 # ═══════════════════════════════════════════════════════════════════
-#  METRICS / PROFILE
+#  METRICS PAGE
 # ═══════════════════════════════════════════════════════════════════
 elif st.session_state.current_view == 'profile':
-    st.button("← Back to Dashboard", key="back_profile", on_click=navigate, args=('dashboard',))
-    st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-
     st.markdown("""
-    <div style="margin-bottom:2rem;">
-        <div class="eyebrow">Performance Records</div>
-        <div class="hero-title" style="font-size:2.6rem;">Academic Metrics</div>
-        <div class="hero-sub" style="font-size:0.95rem; margin-bottom:0;">
-            A full breakdown of your quiz scores and curriculum progress.
-        </div>
+    <div style="padding:1rem 0 1.75rem; animation: fadeUp 0.4s ease both;">
+        <div class="hero-eyebrow">Performance Records</div>
+        <div class="hero-title" style="font-size:2.4rem; margin-bottom:0;">Academic Metrics</div>
     </div>
     """, unsafe_allow_html=True)
 
-    unlocked_count = len(st.session_state.unlocked_modules)
-    completed = sum([
-        st.session_state.m1_quiz_submitted and st.session_state.m1_quiz_score >= 4,
-        st.session_state.m2_quiz_submitted and st.session_state.m2_quiz_score >= 4,
-        st.session_state.m3_quiz_submitted and st.session_state.m3_quiz_score >= 4,
-    ])
-    score_sum, score_count = 0, 0
-    for mn in ['1', '2', '3']:
-        if st.session_state[f'm{mn}_quiz_submitted']:
-            score_sum   += st.session_state[f'm{mn}_quiz_score']
-            score_count += 1
-    avg_pct = int(score_sum / (score_count * 5) * 100) if score_count else 0
-    prog_pct = int(completed / 3 * 100)
+    _sc_sum, _sc_cnt = 0, 0
+    for _mn in ['1', '2', '3']:
+        if st.session_state[f'm{_mn}_quiz_submitted']:
+            _sc_sum += st.session_state[f'm{_mn}_quiz_score']
+            _sc_cnt += 1
+    _avg = int(_sc_sum / (_sc_cnt * 5) * 100) if _sc_cnt else 0
+    _prog = int(_done / 3 * 100)
 
-    col1, col2, col3 = st.columns(3, gap="medium")
-    with col1:
+    c1, c2, c3 = st.columns(3, gap="medium")
+    with c1:
         st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-glow" style="background:#6366f1;"></div>
-            <div class="stat-value" style="background:linear-gradient(135deg,#6366f1,#a855f7);
-                -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
-                {completed}
-            </div>
-            <div class="stat-label">Modules Passed</div>
+        <div class="stat-card sc-b stat-card-anim-1">
+            <div class="sv sv-b">{_done}</div>
+            <div class="sl">Modules Passed</div>
         </div>
         """, unsafe_allow_html=True)
-    with col2:
+    with c2:
         st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-glow" style="background:#10b981;"></div>
-            <div class="stat-value" style="background:linear-gradient(135deg,#10b981,#34d399);
-                -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
-                {avg_pct}%
-            </div>
-            <div class="stat-label">Mean Accuracy</div>
+        <div class="stat-card sc-g stat-card-anim-2">
+            <div class="sv sv-g">{_avg}%</div>
+            <div class="sl">Mean Accuracy</div>
         </div>
         """, unsafe_allow_html=True)
-    with col3:
+    with c3:
         st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-glow" style="background:#a855f7;"></div>
-            <div class="stat-value" style="background:linear-gradient(135deg,#a855f7,#ec4899);
-                -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
-                {prog_pct}%
-            </div>
-            <div class="stat-label">Curriculum Progress</div>
+        <div class="stat-card sc-p stat-card-anim-3">
+            <div class="sv sv-p">{_prog}%</div>
+            <div class="sl">Curriculum Done</div>
         </div>
         """, unsafe_allow_html=True)
 
-    # Progress bar
     st.markdown("<div style='height:1.25rem'></div>", unsafe_allow_html=True)
+
     st.markdown(f"""
-    <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px;
-                padding:1.5rem 2rem; margin-bottom:1.5rem;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
-            <span style="font-size:0.85rem; font-weight:700; color:var(--text);">Overall Progress</span>
-            <span style="font-size:0.8rem; color:var(--muted); font-weight:500;">{completed} of 3 modules completed</span>
+    <div class="prog-section">
+        <div class="prog-head">
+            <span class="prog-title">Overall Progress</span>
+            <span class="prog-sub">{_done} of 3 modules completed</span>
         </div>
-        <div class="prog-wrap" style="height:8px;">
-            <div class="prog-fill" style="height:8px; width:{prog_pct}%;"></div>
+        <div class="prog-track">
+            <div class="prog-fill" style="--bar-w:{_prog}%; width:{_prog}%;"></div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Table
-    def m_status(mn):
+    def _status_cell(mn):
         sub = st.session_state[f'm{mn}_quiz_submitted']
         sc  = st.session_state[f'm{mn}_quiz_score']
+        locked = f'module_{mn}' not in st.session_state.unlocked_modules
+        if locked:
+            return '<span style="color:var(--muted2);font-weight:500;">🔒 Locked</span>', "—"
         if sub and sc >= 4:
-            return f'<span style="color:#4ade80;font-weight:700;">✓ Verified</span>', f"{sc}/5"
-        elif sub:
-            return f'<span style="color:#f87171;font-weight:700;">✗ Needs Retry</span>', f"{sc}/5"
-        elif f'module_{mn}' in st.session_state.unlocked_modules:
-            return f'<span style="color:#fbbf24;font-weight:600;">◷ In Progress</span>', "—"
-        else:
-            return f'<span style="color:var(--muted);font-weight:500;">🔒 Locked</span>', "—"
+            return '<span style="color:#166534;font-weight:700;">✓ Verified</span>', f"{sc}/5"
+        if sub:
+            return '<span style="color:#991b1b;font-weight:700;">✗ Needs Retry</span>', f"{sc}/5"
+        return '<span style="color:#92400e;font-weight:600;">◷ In Progress</span>', "—"
 
-    m1s, m1d = m_status('1')
-    m2s, m2d = m_status('2')
-    m3s, m3d = m_status('3')
+    s1, d1 = _status_cell('1')
+    s2, d2 = _status_cell('2')
+    s3, d3 = _status_cell('3')
 
     st.markdown(f"""
-    <table class="d-table">
+    <table class="dtable">
         <thead>
             <tr>
-                <th>#</th>
-                <th>Module</th>
-                <th>Status</th>
-                <th>Score</th>
+                <th>#</th><th>Module</th><th>Status</th><th>Score</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td style="color:var(--muted);font-size:0.75rem;font-weight:700;">01</td>
+                <td style="color:var(--muted2);font-size:0.75rem;font-weight:700;">01</td>
                 <td style="font-weight:600;">📖 Reading</td>
-                <td>{m1s}</td>
-                <td style="font-family:monospace;letter-spacing:0.06em;color:var(--muted2);">{m1d}</td>
+                <td>{s1}</td>
+                <td style="font-family:monospace;color:var(--muted2);letter-spacing:0.05em;">{d1}</td>
             </tr>
             <tr>
-                <td style="color:var(--muted);font-size:0.75rem;font-weight:700;">02</td>
+                <td style="color:var(--muted2);font-size:0.75rem;font-weight:700;">02</td>
                 <td style="font-weight:600;">📐 Mathematics</td>
-                <td>{m2s}</td>
-                <td style="font-family:monospace;letter-spacing:0.06em;color:var(--muted2);">{m2d}</td>
+                <td>{s2}</td>
+                <td style="font-family:monospace;color:var(--muted2);letter-spacing:0.05em;">{d2}</td>
             </tr>
             <tr>
-                <td style="color:var(--muted);font-size:0.75rem;font-weight:700;">03</td>
+                <td style="color:var(--muted2);font-size:0.75rem;font-weight:700;">03</td>
                 <td style="font-weight:600;">🌊 Natural Sciences</td>
-                <td>{m3s}</td>
-                <td style="font-family:monospace;letter-spacing:0.06em;color:var(--muted2);">{m3d}</td>
+                <td>{s3}</td>
+                <td style="font-family:monospace;color:var(--muted2);letter-spacing:0.05em;">{d3}</td>
             </tr>
         </tbody>
     </table>
