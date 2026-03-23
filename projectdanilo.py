@@ -458,81 +458,6 @@ M3_QUIZ_DATA = [
 
 
 # ═══════════════════════════════════════════════════════════════════
-#  DASHBOARD
-# ═══════════════════════════════════════════════════════════════════
-if st.session_state.current_view == 'dashboard':
-
-    st.markdown("""
-    <div style="margin-bottom: 2.5rem;">
-        <div class="page-eyebrow">Academic Platform</div>
-        <div class="page-title">DANILO</div>
-        <div class="page-subtitle">Your personalized learning journey — one module at a time.</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    col1, col2, col3 = st.columns(3, gap="medium")
-
-    with col1:
-        st.markdown("""
-        <div class="module-card card-reading">
-            <span class="card-icon">📖</span>
-            <div class="card-title">Reading</div>
-            <div class="card-desc">Understanding stories, main ideas, and context clues.</div>
-            <span class="pill pill-active">✦ Accessible</span>
-        </div>
-        """, unsafe_allow_html=True)
-        st.button("Start Learning", key="btn_m1", on_click=navigate, args=('module_1',), use_container_width=True)
-
-    with col2:
-        m2_locked = 'module_2' not in st.session_state.unlocked_modules
-        badge = '<span class="pill pill-locked">🔒 Requires Reading</span>' if m2_locked else '<span class="pill pill-active">✦ Accessible</span>'
-        st.markdown(f"""
-        <div class="module-card card-math" style="{'opacity:0.6;' if m2_locked else ''}">
-            <span class="card-icon">📐</span>
-            <div class="card-title">Mathematics</div>
-            <div class="card-desc">Foundational operations, fractions, and basic geometry.</div>
-            {badge}
-        </div>
-        """, unsafe_allow_html=True)
-        st.button("Start Learning", key="btn_m2", on_click=navigate, args=('module_2',), disabled=m2_locked, use_container_width=True)
-
-    with col3:
-        m3_locked = 'module_3' not in st.session_state.unlocked_modules
-        badge3 = '<span class="pill pill-locked">🔒 Requires Mathematics</span>' if m3_locked else '<span class="pill pill-active">✦ Accessible</span>'
-        st.markdown(f"""
-        <div class="module-card card-science" style="{'opacity:0.6;' if m3_locked else ''}">
-            <span class="card-icon">🌊</span>
-            <div class="card-title">Natural Sciences</div>
-            <div class="card-desc">Explore the water cycle and Earth's hydrosphere.</div>
-            {badge3}
-        </div>
-        """, unsafe_allow_html=True)
-        st.button("Start Learning", key="btn_m3", on_click=navigate, args=('module_3',), disabled=m3_locked, use_container_width=True)
-
-    st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
-
-    col4, col5 = st.columns([1, 2], gap="medium")
-    with col4:
-        # Calculate quick stats for dashboard
-        completed = sum([
-            st.session_state.m1_quiz_submitted and st.session_state.m1_quiz_score >= 4,
-            st.session_state.m2_quiz_submitted and st.session_state.m2_quiz_score >= 4,
-            st.session_state.m3_quiz_submitted and st.session_state.m3_quiz_score >= 4,
-        ])
-        pct = int(completed / 3 * 100)
-        st.markdown(f"""
-        <div class="module-card card-metrics" style="height: auto; min-height: 150px;">
-            <span class="card-icon">📊</span>
-            <div class="card-title">Academic Metrics</div>
-            <div class="card-desc">Track your performance and progress records.</div>
-            <div class="progress-wrap"><div class="progress-fill" style="width:{pct}%"></div></div>
-            <div style="font-size:0.78rem; color:var(--apple-secondary); margin-top:0.4rem;">{pct}% curriculum complete</div>
-        </div>
-        """, unsafe_allow_html=True)
-        st.button("View Analytics", key="btn_profile", on_click=navigate, args=('profile',), use_container_width=True)
-
-
-# ═══════════════════════════════════════════════════════════════════
 #  HELPER: render a lesson module
 # ═══════════════════════════════════════════════════════════════════
 def render_module(module_key, m_num, title, eyebrow, icon, accent, sections, quiz_data):
@@ -558,13 +483,13 @@ def render_module(module_key, m_num, title, eyebrow, icon, accent, sections, qui
 
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    started_key  = f'm{m_num}_quiz_started'
+    started_key   = f'm{m_num}_quiz_started'
     submitted_key = f'm{m_num}_quiz_submitted'
-    score_key    = f'm{m_num}_quiz_score'
-    form_key     = f'm{m_num}_quiz_form'
-    start_btn    = f'start_m{m_num}_quiz'
-    retake_btn   = f'retake_m{m_num}'
-    next_module  = f'module_{int(m_num)+1}'
+    score_key     = f'm{m_num}_quiz_score'
+    form_key      = f'm{m_num}_quiz_form'
+    start_btn     = f'start_m{m_num}_quiz'
+    retake_btn    = f'retake_m{m_num}'
+    next_module   = f'module_{int(m_num)+1}'
 
     if not st.session_state[started_key]:
         st.markdown("""
@@ -644,6 +569,81 @@ def render_module(module_key, m_num, title, eyebrow, icon, accent, sections, qui
                 if st.session_state.get(retake_btn):
                     st.session_state[submitted_key] = False
                     st.rerun()
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  DASHBOARD
+# ═══════════════════════════════════════════════════════════════════
+if st.session_state.current_view == 'dashboard':
+
+    st.markdown("""
+    <div style="margin-bottom: 2.5rem;">
+        <div class="page-eyebrow">Academic Platform</div>
+        <div class="page-title">DANILO</div>
+        <div class="page-subtitle">Your personalized learning journey — one module at a time.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns(3, gap="medium")
+
+    with col1:
+        st.markdown("""
+        <div class="module-card card-reading">
+            <span class="card-icon">📖</span>
+            <div class="card-title">Reading</div>
+            <div class="card-desc">Understanding stories, main ideas, and context clues.</div>
+            <span class="pill pill-active">✦ Accessible</span>
+        </div>
+        """, unsafe_allow_html=True)
+        st.button("Start Learning", key="btn_m1", on_click=navigate, args=('module_1',), use_container_width=True)
+
+    with col2:
+        m2_locked = 'module_2' not in st.session_state.unlocked_modules
+        badge = '<span class="pill pill-locked">🔒 Requires Reading</span>' if m2_locked else '<span class="pill pill-active">✦ Accessible</span>'
+        st.markdown(f"""
+        <div class="module-card card-math" style="{'opacity:0.6;' if m2_locked else ''}">
+            <span class="card-icon">📐</span>
+            <div class="card-title">Mathematics</div>
+            <div class="card-desc">Foundational operations, fractions, and basic geometry.</div>
+            {badge}
+        </div>
+        """, unsafe_allow_html=True)
+        st.button("Start Learning", key="btn_m2", on_click=navigate, args=('module_2',), disabled=m2_locked, use_container_width=True)
+
+    with col3:
+        m3_locked = 'module_3' not in st.session_state.unlocked_modules
+        badge3 = '<span class="pill pill-locked">🔒 Requires Mathematics</span>' if m3_locked else '<span class="pill pill-active">✦ Accessible</span>'
+        st.markdown(f"""
+        <div class="module-card card-science" style="{'opacity:0.6;' if m3_locked else ''}">
+            <span class="card-icon">🌊</span>
+            <div class="card-title">Natural Sciences</div>
+            <div class="card-desc">Explore the water cycle and Earth's hydrosphere.</div>
+            {badge3}
+        </div>
+        """, unsafe_allow_html=True)
+        st.button("Start Learning", key="btn_m3", on_click=navigate, args=('module_3',), disabled=m3_locked, use_container_width=True)
+
+    st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+
+    col4, col5 = st.columns([1, 2], gap="medium")
+    with col4:
+        # Calculate quick stats for dashboard
+        completed = sum([
+            st.session_state.m1_quiz_submitted and st.session_state.m1_quiz_score >= 4,
+            st.session_state.m2_quiz_submitted and st.session_state.m2_quiz_score >= 4,
+            st.session_state.m3_quiz_submitted and st.session_state.m3_quiz_score >= 4,
+        ])
+        pct = int(completed / 3 * 100)
+        st.markdown(f"""
+        <div class="module-card card-metrics" style="height: auto; min-height: 150px;">
+            <span class="card-icon">📊</span>
+            <div class="card-title">Academic Metrics</div>
+            <div class="card-desc">Track your performance and progress records.</div>
+            <div class="progress-wrap"><div class="progress-fill" style="width:{pct}%"></div></div>
+            <div style="font-size:0.78rem; color:var(--apple-secondary); margin-top:0.4rem;">{pct}% curriculum complete</div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.button("View Analytics", key="btn_profile", on_click=navigate, args=('profile',), use_container_width=True)
 
 
 # ═══════════════════════════════════════════════════════════════════
