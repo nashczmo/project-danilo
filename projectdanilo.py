@@ -1,1111 +1,942 @@
-import streamlit as st
-import os
+import streamlit as st, os
 
-if not os.path.exists(".streamlit"):
-    os.makedirs(".streamlit")
-with open(".streamlit/config.toml", "w") as f:
-    f.write('[theme]\nbase="light"\nprimaryColor="#1a73e8"\nbackgroundColor="#f1f3f4"\nsecondaryBackgroundColor="#ffffff"\ntextColor="#202124"\nfont="sans serif"\n')
+os.makedirs(".streamlit", exist_ok=True)
+with open(".streamlit/config.toml","w") as f:
+    f.write('[theme]\nbase="light"\nbackgroundColor="#f5f5f7"\nsecondaryBackgroundColor="#ffffff"\ntextColor="#1d1d1f"\nfont="sans serif"\n')
 
-st.set_page_config(
-    page_title="DANILO Classroom",
-    page_icon="📚",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+st.set_page_config(page_title="Classroom", page_icon="📚",
+                   layout="wide", initial_sidebar_state="expanded")
 
-# ── Quiz data ─────────────────────────────────────────────────────────────────
-M1 = [
-    {"q":"What do we call the specific time and place in which a story unfolds?","o":["The Plot","The Characters","The Setting","The Theme"],"a":"The Setting"},
-    {"q":"Where is the main idea of a paragraph most commonly found?","o":["In a footnote","At the very end","In the topic sentence","Between the lines"],"a":"In the topic sentence"},
-    {"q":"What are surrounding clues that help a reader decode an unfamiliar word?","o":["Context clues","Phonics hints","Story settings","Grammar rules"],"a":"Context clues"},
-    {"q":"Who are the people, animals, or creatures that participate in a story's events?","o":["The Authors","The Narrators","The Characters","The Themes"],"a":"The Characters"},
-    {"q":"What is the term for the sequence of events that drives a story from beginning to end?","o":["The Plot","The Cover Page","The Vocabulary","The Epilogue"],"a":"The Plot"},
-]
-M2 = [
-    {"q":"What does reading fluency primarily involve?","o":["Reading as fast as possible","Reading accurately, smoothly, and with natural expression","Memorising every vocabulary word","Reading silently without any lip movement"],"a":"Reading accurately, smoothly, and with natural expression"},
-    {"q":"Which technique involves reading the same passage multiple times until it flows effortlessly?","o":["Skimming","Scanning","Repeated reading","Speed reading"],"a":"Repeated reading"},
-    {"q":"What is a 'sight word'?","o":["A word with silent letters","A word instantly recognised without sounding it out","A very long word","A word borrowed from another language"],"a":"A word instantly recognised without sounding it out"},
-    {"q":"What does reading with 'expression' mean?","o":["Speaking as loudly as possible","Changing your voice to match the emotion and meaning of the text","Reading every word at the same monotone pace","Pausing three seconds after every sentence"],"a":"Changing your voice to match the emotion and meaning of the text"},
-    {"q":"Which habit best strengthens reading comprehension over time?","o":["Reading only one type of book","Asking thoughtful questions before, during, and after reading","Skipping all difficult words","Reading only very short sentences"],"a":"Asking thoughtful questions before, during, and after reading"},
-]
-M3 = [
-    {"q":"What is the total sum when you add 145 and 278?","o":["423","413","433","323"],"a":"423"},
-    {"q":"What is the perimeter of a square with one side measuring 9 units?","o":["18 units","27 units","36 units","81 units"],"a":"36 units"},
-    {"q":"In the fraction 3/4, what does the bottom number 4 represent?","o":["The parts we have","The total equal parts making up the whole","The sum of both numbers","The difference between two numbers"],"a":"The total equal parts making up the whole"},
-    {"q":"What is the product of 15 multiplied by 8?","o":["100","110","120","130"],"a":"120"},
-    {"q":"What is the correct term for any flat, closed shape bounded by straight sides?","o":["Circle","Sphere","Polygon","Cylinder"],"a":"Polygon"},
-]
-M4 = [
-    {"q":"What process transforms liquid water from rivers and oceans into invisible water vapour?","o":["Condensation","Evaporation","Precipitation","Sublimation"],"a":"Evaporation"},
-    {"q":"Which energy source is the primary driver of the entire water cycle?","o":["The Moon's gravity","Geothermal vents","The Sun","Ocean currents"],"a":"The Sun"},
-    {"q":"What forms when rising water vapour cools and condenses in the atmosphere?","o":["Raindrops on a window","Clouds","Underground rivers","Aquifers"],"a":"Clouds"},
-    {"q":"Which of the following is an example of precipitation?","o":["A puddle drying in the sun","Snow falling from the sky","Steam rising from boiling water","Ice melting in a glass"],"a":"Snow falling from the sky"},
-    {"q":"What is the name for an underground layer of permeable rock holding large amounts of freshwater?","o":["A cloud layer","An aquifer","The stratosphere","A water table valve"],"a":"An aquifer"},
-]
-
-MODS = {
-    "module_1":{
-        "k":"1","label":"Reading","section":"Grade 4 — English","teacher":"Ms. Santos",
-        "icon":"📖","hbg":"#1a73e8","avatar_bg":"#1557b0",
-        "quiz":M1,"next":"module_2","umsg":"Reading Fluency is now unlocked!",
-        "topics":[
-            ("📚","#e8f0fe","#1a73e8","1.0 — Elements of a Story",
-             "Every story is built from essential building blocks that work together to create meaning and bring a narrative to life. The <b>setting</b> establishes the world of the story — not only the physical location but also the time period, culture, atmosphere, and mood in which events unfold. A story set in a rainy medieval castle creates an entirely different feeling from one set on a sun-drenched modern beach, even when the plot is nearly identical. The <b>characters</b> are the living hearts of any narrative — they can be people, animals, mythical creatures, or even everyday objects given a personality. Their hopes, fears, flaws, and relationships create the emotional texture that keeps readers turning pages long after bedtime. The <b>plot</b> is the engine: the carefully ordered chain of events — conflict, rising action, climax, falling action, and resolution — that propels the reader from the opening sentence to the very last word. Mastering these three elements gives you a reliable lens through which to read, analyse, and enjoy any story you encounter, from picture books to classic literature."),
-            ("🔍","#e6f4ea","#1e8e3e","1.1 — Finding the Main Idea",
-             "Every well-written paragraph revolves around a single central point called the <b>main idea</b>. This is the author's primary message — the one thing they most want you to understand and remember after reading. Skilled readers train themselves to locate this quickly by looking for the <b>topic sentence</b>, which typically appears at or near the beginning of a paragraph and announces its subject clearly and directly. The sentences that follow — called <b>supporting details</b> — provide evidence, examples, statistics, anecdotes, or descriptions that expand on and reinforce the topic sentence. One reliable technique is to pause after reading any paragraph and ask yourself: 'If I had to express this entire paragraph in a single sentence, what would it say?' That mental summary is almost always the main idea. Apply this skill consistently across every text you read — newspaper articles, science chapters, social media posts — and even the most complex material will feel far more approachable and manageable."),
-            ("💡","#fef7e0","#b06000","1.2 — Using Context Clues",
-             "Encountering an unfamiliar word mid-sentence does not have to interrupt your reading flow. Skilled readers use <b>context clues</b> — the words, phrases, sentences, and even images surrounding the unknown term — to make an educated, confident guess about its meaning without ever pausing to reach for a dictionary. There are several recognisable types. <b>Definition clues</b> occur when the author helpfully explains a word immediately after using it, often signalled by phrases like 'which means,' 'that is,' or 'in other words.' <b>Synonym clues</b> appear when a nearby word shares a similar meaning. <b>Antonym clues</b> use contrast words like 'but,' 'however,' 'unlike,' or 'instead' to hint at an opposite meaning. <b>Example clues</b> illustrate a word's meaning through specific, concrete instances. The wider and more varied your reading, the sharper your context-clue instincts become — turning every unfamiliar word into an exciting opportunity to expand your vocabulary."),
-            ("✍️","#fce8e6","#c5221f","1.3 — Building Your Vocabulary",
-             "A rich vocabulary is among the most powerful tools any reader, writer, thinker, or communicator can possess. Words are the instruments of thought — the more precise and varied your vocabulary, the more accurately and vividly you can both understand the world and express your own ideas. One deeply effective strategy is keeping a <b>personal vocabulary journal</b>: a dedicated notebook where you record new words, their precise definitions, the original sentence in which you found them, and an original example sentence you craft yourself. Cognitive science research consistently shows that <b>spaced repetition</b> — revisiting new words at gradually increasing intervals — produces dramatically stronger long-term retention than cramming. Another proven strategy is studying <b>Greek and Latin word roots, prefixes, and suffixes</b>. For example, knowing that the Latin root <em>port</em> means 'to carry' instantly unlocks transport, import, export, portable, portfolio, and deportation. Vocabulary knowledge is wonderfully cumulative — each new word you learn makes learning the next one slightly easier."),
-        ],
-    },
-    "module_2":{
-        "k":"2","label":"Reading Fluency","section":"Grade 4 — English (Advanced)","teacher":"Ms. Santos",
-        "icon":"🗣️","hbg":"#7b1fa2","avatar_bg":"#4a148c",
-        "quiz":M2,"next":"module_3","umsg":"Mathematics is now unlocked!",
-        "topics":[
-            ("🎯","#f3e8fd","#7b1fa2","2.0 — What Is Reading Fluency?",
-             "Reading fluency is the essential <b>bridge between recognising individual words on a page and truly comprehending what you read</b>. A fluent reader moves through text with three interlocking qualities: <b>accuracy</b> (decoding words correctly without errors), <b>automaticity</b> (recognising words instantly without conscious effort), and <b>prosody</b> (reading with natural rhythm, appropriate pacing, meaningful pauses, and expressive intonation that mirrors natural speech). When reading is effortful and halting, virtually all of a reader's mental energy is consumed by simply decoding individual words, leaving little capacity for higher-order thinking: inferring meaning, questioning the author, visualising scenes, or connecting ideas. Fluency liberates the brain to operate at a genuinely higher level. Decades of reading research have consistently identified fluency as one of the strongest individual predictors of overall reading comprehension — which means developing it is not optional; it is absolutely foundational."),
-            ("🔄","#e8f0fe","#1a73e8","2.1 — The Power of Repeated Reading",
-             "<b>Repeated reading</b> is one of the most elegantly simple yet strikingly powerful techniques in all of reading instruction. The method is straightforward: select a short, engaging passage and read it aloud multiple times (usually three to five), tracking your own accuracy, expression, and fluency as you improve with each reading. On your very first encounter, you are largely decoding. By your second reading, you begin to feel the natural shape and rhythm of sentences. By the third and fourth, you are reading with genuine expression and a level of comprehension you could not access before. Think of how a musician learns a new piece: they do not play it once and declare mastery. They rehearse it, refine it, identify trouble spots, and gradually build toward a confident, expressive performance. Reading is the same kind of practised, deliberate skill. A powerful companion is <b>paired reading</b>, where a more skilled reader sits beside a developing reader, reading aloud together — providing a real-time model of fluent, expressive reading."),
-            ("👁️","#e6f4ea","#1e8e3e","2.2 — Sight Words and Automaticity",
-             "A relatively small set of high-frequency words — called <b>sight words</b> — accounts for an astonishing proportion of all written English text. Words like 'the,' 'and,' 'said,' 'because,' 'through,' 'could,' 'would,' and 'there' appear on virtually every single page. When a reader must laboriously decode these extremely common words on every encounter, reading becomes painfully slow and mentally exhausting, draining energy that should be directed toward comprehension. The goal is complete <b>automaticity</b> — recognising these words as whole, instant, effortless units. Reading scientists call this process <b>orthographic mapping</b> — the deep encoding of a word's spelling, pronunciation, and meaning into long-term memory as a single, retrievable unit. Proven methods include systematic flashcard practice, classroom word walls, word sorts, word games, and — most powerfully — wide, regular, and pleasurable independent reading."),
-            ("🧠","#fef7e0","#b06000","2.3 — Active Comprehension Strategies",
-             "Deep reading comprehension is not a passive activity — it is an active, ongoing, and intentional conversation between the reader and the text. Expert readers deploy a toolkit of deliberate mental strategies that transform passive decoding into active sense-making. <b>Predicting</b> means forming expectations about what will happen next, based on evidence in the text and your own background knowledge. <b>Questioning</b> involves generating your own genuine questions — transforming you from a recipient into a critical thinker. <b>Visualising</b> means constructing a vivid, detailed mental movie of settings, characters, actions, and emotions — research consistently shows that strong visualisation dramatically improves both comprehension and memory. <b>Summarising</b> requires you to identify what truly matters and restate it concisely in your own words. <b>Making connections</b> — linking new information to personal experience, other texts, or the world — is the mechanism by which truly deep and durable understanding is formed."),
-        ],
-    },
-    "module_3":{
-        "k":"3","label":"Mathematics","section":"Grade 4 — Mathematics","teacher":"Mr. Reyes",
-        "icon":"🔢","hbg":"#2e7d32","avatar_bg":"#1b5e20",
-        "quiz":M3,"next":"module_4","umsg":"Natural Sciences is now unlocked!",
-        "topics":[
-            ("➕","#e6f4ea","#1e8e3e","3.0 — The Four Basic Operations",
-             "All of mathematics rests on four fundamental operations that allow us to manipulate, compare, and understand numbers in every conceivable context. <b>Addition</b> combines two or more quantities to find their total sum — asking, in essence, 'how many altogether?' <b>Subtraction</b> is addition's inverse, finding the difference between quantities — asking 'how many remain?' or 'how much more?' <b>Multiplication</b> is a powerful and elegant shortcut for repeated addition: rather than laboriously adding 9 together seven separate times, we express this instantly as 9 × 7 = 63. Understanding multiplication conceptually — not merely as a set of facts to memorise — is the gateway to virtually all advanced mathematics, from algebra to calculus. <b>Division</b> is multiplication's inverse, partitioning a quantity into equal groups. Mastering all four operations with genuine fluency is a non-negotiable foundation for mathematical success at every stage of education and life."),
-            ("½","#e8f0fe","#1a73e8","3.1 — Understanding Fractions",
-             "A fraction is a precise, powerful mathematical tool for representing any part of a whole. When we write ¾, the number on top — the <b>numerator</b> (3) — tells us how many equal parts we currently possess. The number on the bottom — the <b>denominator</b> (4) — tells us into how many equal parts the whole has been divided. Imagine a rectangular chocolate bar divided into four equal pieces: eating three of those pieces means you have consumed ¾ of the bar. The denominator can <b>never be zero</b>, because dividing something into zero parts is a mathematical impossibility — it carries no coherent meaning. Fractions can be classified as <b>proper</b> (like ⅔, representing less than one whole), <b>improper</b> (like 7/4, representing more than one whole), or expressed as <b>mixed numbers</b> (like 1¾). A thorough understanding of fractions is the direct foundation for decimals, percentages, ratios, rates, and algebraic thinking."),
-            ("📐","#fef7e0","#b06000","3.2 — Shapes, Perimeter, and Area",
-             "Geometry is the magnificent branch of mathematics devoted to understanding the properties, relationships, and measurements of points, lines, angles, surfaces, and solid figures. A <b>polygon</b> is any flat, closed, two-dimensional figure entirely bounded by straight sides. Polygons are classified by the number of their sides: triangle (3), quadrilateral (4), pentagon (5), hexagon (6), and so on. Two of the most essential measurements of any flat shape are its <b>perimeter</b> and its <b>area</b>. The perimeter is the total distance around the complete outer boundary of a shape. For a rectangle: perimeter = 2 × (length + width). The area measures how much flat surface the shape covers. For a rectangle: area = length × width. Real-world applications are everywhere: a builder uses perimeter to calculate baseboard; a painter uses area to determine paint quantity; a farmer uses both to plan fields and fencing simultaneously."),
-        ],
-    },
-    "module_4":{
-        "k":"4","label":"Natural Sciences","section":"Grade 4 — Science","teacher":"Ms. Cruz",
-        "icon":"🌍","hbg":"#e64a19","avatar_bg":"#bf360c",
-        "quiz":M4,"next":None,"umsg":"🎉 Congratulations — all modules complete!",
-        "topics":[
-            ("🌊","#e8f0fe","#1a73e8","4.0 — Introduction to the Water Cycle",
-             "The water cycle — known scientifically as the <b>hydrological cycle</b> — is one of Earth's most fundamental and life-sustaining natural processes. It describes the continuous, perpetual journey of water as it moves and transforms among Earth's surface (oceans, rivers, lakes, glaciers, soil), its atmosphere, and its underground systems. Water is never created or destroyed in this process; it simply changes its physical state and its location, cycling through the same pathways it has followed for approximately 4.5 billion years. The total volume of water on Earth has remained essentially constant since our planet formed. This means the water flowing from your tap today has, at some earlier moment, filled a prehistoric ocean, nourished a dinosaur, been locked inside an Antarctic glacier, and fallen as rain over a distant mountain range. Understanding the water cycle is fundamental to meteorology, hydrology, ecology, agriculture, and the science of climate change."),
-            ("☀️","#fef7e0","#b06000","4.1 — Evaporation and Condensation",
-             "<b>Evaporation</b> is the process by which the Sun's tremendous thermal energy heats liquid water at Earth's surface — primarily in oceans, seas, rivers, and lakes — converting it into water vapour, an invisible gas that rises buoyantly into the atmosphere. Roughly 90% of all atmospheric water vapour originates from ocean evaporation; the remaining 10% comes from the transpiration of land plants (collectively called <b>evapotranspiration</b>). As water vapour rises higher into the troposphere, it encounters progressively colder temperatures. When the vapour cools below a critical threshold called the <b>dew point</b>, it undergoes <b>condensation</b> — reverting from an invisible gas back into microscopic liquid water droplets or tiny ice crystals. These minuscule particles cling to even tinier specks of dust, sea salt, and pollen suspended in the air, clustering together to form the visible, billowing clouds we observe drifting across the sky."),
-            ("🌧️","#e6f4ea","#1e8e3e","4.2 — Precipitation and Collection",
-             "As clouds continue to grow — accumulating ever-greater quantities of condensed water droplets — gravity eventually overcomes the atmospheric forces keeping the droplets aloft. Water then falls back to Earth's surface as <b>precipitation</b>. The precise form precipitation takes is determined by atmospheric temperature: <b>rain</b> forms when temperatures remain above freezing throughout; <b>snow</b> forms when temperatures stay below freezing from cloud to ground; <b>sleet</b> forms when falling raindrops refreeze before reaching the ground; and <b>hail</b> forms when powerful updrafts inside intense thunderstorms repeatedly carry ice pellets back upward before they finally fall. Once precipitation reaches Earth's surface, water takes multiple pathways: it replenishes oceans, lakes, rivers, and reservoirs; it is drawn up by plant roots; and it seeps into soil through <b>infiltration</b>, percolating downward to recharge underground <b>aquifers</b> — vast reservoirs of freshwater capable of sustaining entire cities and ecosystems."),
-        ],
-    },
+# ─────────────────────────────────────────────────────────────────────
+#  DATA
+# ─────────────────────────────────────────────────────────────────────
+QUIZ = {
+    "1":[
+        {"q":"What do we call the time and place in which a story unfolds?","o":["The Plot","The Characters","The Setting","The Theme"],"a":"The Setting"},
+        {"q":"Where is the main idea of a paragraph most commonly found?","o":["In a footnote","At the very end","In the topic sentence","In the conclusion"],"a":"In the topic sentence"},
+        {"q":"What are surrounding clues that help decode an unfamiliar word called?","o":["Context clues","Phonics hints","Syntax rules","Story beats"],"a":"Context clues"},
+        {"q":"Who are the people or creatures that participate in a story's events?","o":["The Authors","The Narrators","The Characters","The Editors"],"a":"The Characters"},
+        {"q":"What is the term for the sequence of events driving a story from start to finish?","o":["The Plot","The Cover","The Vocabulary","The Epilogue"],"a":"The Plot"},
+    ],
+    "2":[
+        {"q":"What does reading fluency primarily involve?","o":["Reading as fast as possible","Reading accurately, smoothly, and with natural expression","Memorising every vocabulary word","Subvocalising every syllable"],"a":"Reading accurately, smoothly, and with natural expression"},
+        {"q":"Which technique involves reading the same passage multiple times until effortless?","o":["Skimming","Scanning","Repeated reading","Speed reading"],"a":"Repeated reading"},
+        {"q":"What is a sight word?","o":["A word with silent letters","A word instantly recognised without sounding it out","A very long compound word","A word borrowed from Latin"],"a":"A word instantly recognised without sounding it out"},
+        {"q":"What does reading with expression mean?","o":["Speaking as loudly as possible","Changing your voice to match the emotion and meaning of the text","Reading every word at the exact same pace","Pausing three seconds after each sentence"],"a":"Changing your voice to match the emotion and meaning of the text"},
+        {"q":"Which habit best strengthens reading comprehension over time?","o":["Reading only one genre","Asking thoughtful questions before, during, and after reading","Skipping all difficult words","Reading only very short passages"],"a":"Asking thoughtful questions before, during, and after reading"},
+    ],
+    "3":[
+        {"q":"What is the sum of 145 and 278?","o":["423","413","433","323"],"a":"423"},
+        {"q":"What is the perimeter of a square with one side of 9 units?","o":["18 units","27 units","36 units","81 units"],"a":"36 units"},
+        {"q":"In the fraction 3/4, what does the denominator 4 represent?","o":["Parts we have","Total equal parts in the whole","The product","The quotient"],"a":"Total equal parts in the whole"},
+        {"q":"What is the product of 15 × 8?","o":["100","110","120","130"],"a":"120"},
+        {"q":"What is the correct term for a flat, closed shape with straight sides?","o":["Circle","Sphere","Polygon","Cylinder"],"a":"Polygon"},
+    ],
+    "4":[
+        {"q":"What transforms liquid water into invisible water vapour?","o":["Condensation","Evaporation","Precipitation","Sublimation"],"a":"Evaporation"},
+        {"q":"Which energy source drives the entire water cycle?","o":["The Moon","Geothermal heat","The Sun","Ocean currents"],"a":"The Sun"},
+        {"q":"What forms when rising water vapour cools and condenses?","o":["Raindrops","Clouds","Underground rivers","Aquifers"],"a":"Clouds"},
+        {"q":"Which is an example of precipitation?","o":["A puddle drying","Snow falling","Steam rising","Ice melting in a glass"],"a":"Snow falling"},
+        {"q":"What is an underground layer of permeable rock holding freshwater called?","o":["A cloud layer","An aquifer","The stratosphere","A water valve"],"a":"An aquifer"},
+    ],
 }
 
-# ── Session state ─────────────────────────────────────────────────────────────
-if "view" not in st.session_state: st.session_state.view = "home"
-if "unlocked" not in st.session_state: st.session_state.unlocked = ["module_1"]
-for m in ["1","2","3","4"]:
-    for k,d in [("qs",False),("qd",False),("qr",0)]:
-        if f"m{m}_{k}" not in st.session_state: st.session_state[f"m{m}_{k}"] = d
+COURSES = {
+    "c1":{"id":"1","title":"Reading","sub":"Understanding Stories and Words","teacher":"Ms. Santos","grade":"Grade 4","color":"#0071e3","next":"c2",
+          "lessons":[
+            ("1.0 — Elements of a Story",
+             "Every story is built from three foundational elements. The <b>setting</b> establishes not just a physical location but an entire atmosphere — the rain-slicked streets of a noir city feel completely different from a sun-drenched countryside, even if the same events occur in both. The <b>characters</b> are the human (or non-human) engines of every narrative. What they want, fear, and believe shapes every decision and every conflict. Great characters feel so real they seem to exist beyond the page. The <b>plot</b> is the architecture of the story — the sequence of events that transforms an opening situation into a changed world. A strong plot is not just 'things that happen'; it is causally connected events that feel both surprising and inevitable in retrospect. Understanding these three elements transforms you from a passive reader into an active analyst who can engage deeply with any text."),
+            ("1.1 — Finding the Main Idea",
+             "The <b>main idea</b> is the single sentence that captures what an entire paragraph is really about. Authors plant this seed in the <b>topic sentence</b> — almost always the first sentence — and then spend the rest of the paragraph watering it with supporting details: examples, statistics, anecdotes, and explanations. A skilled reader develops a mental habit: after every paragraph, pause and ask, 'What is the one thing the author most wants me to take away?' If you can answer that question in your own words without looking back, you have understood the main idea. This habit, practised consistently across thousands of paragraphs, becomes automatic — and it is the single most powerful tool for navigating complex texts in every academic subject."),
+            ("1.2 — Context Clues",
+             "When you encounter an unfamiliar word, your first instinct might be to stop and look it up. Skilled readers instead reach for <b>context clues</b> — the surrounding text. <b>Definition clues</b> are the most generous: the author defines the word directly ('osmosis, which is the movement of water across a membrane'). <b>Synonym clues</b> place a familiar near-equivalent close by. <b>Antonym clues</b> use contrast markers like 'unlike' or 'however' to reveal meaning through opposition. <b>Inference clues</b> require the reader to synthesise several surrounding ideas. The goal is not to guess randomly — it is to triangulate meaning from evidence, exactly the way a detective reasons from clues to a conclusion."),
+            ("1.3 — Vocabulary Building",
+             "Vocabulary size is the strongest single predictor of reading comprehension — stronger even than general intelligence. Words cluster in networks: learning <b>port</b> (Latin for 'carry') instantly illuminates transport, import, export, portable, and portfolio. A <b>vocabulary journal</b> — recording new words, their etymology, and an original example sentence — leverages the generation effect: you remember far better what you produce than what you passively read. <b>Spaced repetition</b> — reviewing new words at intervals of 1, 3, 7, and 14 days — moves words from working memory into long-term storage with remarkable efficiency. Aim for at least five genuine encounters with a word before declaring it fully 'learned.'"),
+          ]},
+    "c2":{"id":"2","title":"Reading Fluency","sub":"Speed, Expression & Comprehension","teacher":"Ms. Santos","grade":"Grade 4","color":"#5856d6","next":"c3",
+          "lessons":[
+            ("2.0 — What Is Fluency?",
+             "Reading fluency sits at the intersection of <b>accuracy</b>, <b>automaticity</b>, and <b>prosody</b>. Accuracy means decoding words correctly. Automaticity means doing so without conscious effort — recognising a word the way you recognise a familiar face, instantly and effortlessly. Prosody is the musical element: the rhythm, pacing, and expressive intonation that transforms a series of words into something that communicates emotion and nuance. When all three operate together, the reader's cognitive resources are freed from the mechanical labour of decoding and become available for the higher-order work of comprehension, inference, and evaluation. Fluency is not a luxury skill; it is the infrastructure upon which all advanced reading is built."),
+            ("2.1 — Repeated Reading",
+             "<b>Repeated reading</b> works because fluency is a performance skill, and performance skills improve with rehearsal. Choose a passage of 100–200 words at or slightly above your comfortable reading level. Read it aloud once, timing yourself and noting errors. Read it again, focusing on smoothness. Read it a third time, adding natural expression. Research consistently shows that three to five readings of the same passage improve both fluency and comprehension — and crucially, the gains transfer to new, unseen passages. Pair this with <b>echo reading</b> (listening to a fluent model, then reproducing the same passage) and <b>choral reading</b> (reading aloud in unison with others) for maximum effect."),
+            ("2.2 — Sight Words",
+             "The 300 most common words in English account for approximately 65% of all running text. When a reader must consciously decode these words — sounding out 'the' or 'because' letter by letter — reading grinds to a near-halt. <b>Sight word automaticity</b> is achieved through a process called <b>orthographic mapping</b>: the brain permanently bonds a word's pronunciation, spelling, and meaning into a single, instantly retrievable unit. Flashcard practice, word sorting, word hunts in real texts, and — above all — massive amounts of independent reading all contribute to this mapping. Once the 300 common words are automatic, the cognitive overhead of reading drops dramatically, and comprehension can operate at full capacity."),
+            ("2.3 — Comprehension Strategies",
+             "Active readers do not wait for understanding to arrive — they create it through deliberate strategies. <b>Predicting</b> forces the brain to engage forward-looking reasoning. <b>Questioning</b> — 'Why did this happen? What does this mean? Do I agree?' — turns reading into a dialogue rather than a monologue. <b>Visualising</b> recruits the brain's spatial and visual systems to build a mental model of the text. <b>Clarifying</b> catches moments of confusion before they compound. <b>Summarising</b> consolidates understanding by requiring the reader to reconstruct the text's structure in their own mind. Research from the National Reading Panel identifies these five strategies as having the strongest evidence base of any comprehension interventions."),
+          ]},
+    "c3":{"id":"3","title":"Mathematics","sub":"Foundational Operations & Geometry","teacher":"Mr. Reyes","grade":"Grade 4","color":"#34c759","next":"c4",
+          "lessons":[
+            ("3.0 — The Four Operations",
+             "The four arithmetic operations are the grammar of mathematics — the rules that determine how numbers relate and transform. <b>Addition</b> is the most primitive: it models the joining of quantities. <b>Subtraction</b> is its inverse, modelling separation and difference. <b>Multiplication</b> is the profound shortcut that transforms arithmetic from laborious repeated addition into something elegant: 9 × 7 expresses in two symbols what '9 + 9 + 9 + 9 + 9 + 9 + 9' expresses in seventeen. <b>Division</b> is multiplication's mirror, partitioning a whole into equal parts. Fluency in all four operations — not just rote recall, but genuine conceptual understanding — is the prerequisite for every area of mathematics that follows: algebra, geometry, statistics, and calculus all assume it."),
+            ("3.1 — Fractions",
+             "A fraction encodes a relationship — specifically, the relationship of a part to a whole. The <b>denominator</b> (bottom number) defines the size of the unit: in ¾, the whole has been divided into four equal parts, so each part is one-quarter the size of the whole. The <b>numerator</b> (top number) counts how many of those units we have. This apparently simple structure contains enormous depth. It explains why you cannot add fractions with different denominators without first converting them (you would be adding apples to oranges). It explains why multiplying two fractions produces a smaller result. It underpins the concept of ratio, rate, proportion, probability, and every percentage calculation you will ever perform. The denominator can never be zero because 'dividing into zero parts' is a logical impossibility with no coherent definition."),
+            ("3.2 — Shapes & Measurement",
+             "Geometry begins with the observation that shapes have measurable properties. The <b>perimeter</b> of any polygon is simply the sum of its side lengths — it answers the question 'how far around?' A rectangle's perimeter is 2(l + w) because it has two pairs of equal sides. The <b>area</b> answers 'how much surface?' For a rectangle, area = l × w, which can be understood visually as the number of unit squares that tile the interior. These two measures capture different aspects of a shape: a very thin, elongated rectangle can have the same perimeter as a square but a fraction of the square's area. Understanding the distinction between perimeter and area — and when each is relevant — is essential for every practical application of geometry, from flooring to fencing to map reading."),
+          ]},
+    "c4":{"id":"4","title":"Natural Sciences","sub":"The Hydrological Cycle","teacher":"Ms. Cruz","grade":"Grade 4","color":"#ff9500","next":None,
+          "lessons":[
+            ("4.0 — The Water Cycle",
+             "The <b>hydrological cycle</b> is Earth's perpetual water redistribution system, driven primarily by solar energy and shaped by gravity. It has no beginning and no end — water that evaporated from an ancient ocean may have fallen as rain on a Roman aqueduct, been absorbed by a medieval oak, transpired back into the atmosphere, frozen into an alpine glacier, melted into a river, and eventually arrived at your tap. The total volume of water on Earth has been essentially constant for four billion years; what changes is its form and location. This cycle is not merely a curiosity of physical geography — it regulates global temperature, drives weather systems, replenishes freshwater supplies, and transports enormous quantities of dissolved minerals and nutrients across the planet's surface."),
+            ("4.1 — Evaporation & Condensation",
+             "<b>Evaporation</b> is the energy-absorbing phase transition by which liquid water at Earth's surface — primarily oceans, which cover 71% of the planet — is converted into water vapour by solar radiation. At the molecular level, the most energetic water molecules escape the liquid surface and become part of the gas phase. The oceans contribute roughly 86% of atmospheric water vapour; land evaporation and plant <b>transpiration</b> (collectively 'evapotranspiration') contribute the remainder. As vapour rises, it cools. When temperature drops below the <b>dew point</b>, vapour undergoes <b>condensation</b> — the energy-releasing phase transition back to liquid. Condensation requires a surface: microscopic particles of dust, sea salt, pollen, and even combustion products serve as <b>condensation nuclei</b>, around which droplets form and clouds develop."),
+            ("4.2 — Precipitation & Collection",
+             "<b>Precipitation</b> occurs when cloud droplets grow — through collision, coalescence, and the Bergeron process — until they are too heavy for updrafts to sustain. They fall as <b>rain</b> (above-freezing atmosphere), <b>snow</b> (below-freezing from cloud to ground), <b:>sleet</b> (rain refreezing en route), or <b>hail</b> (ice pellets repeatedly cycled upward by thunderstorm updrafts). On reaching the surface, water partitions among several pathways: direct <b>runoff</b> into rivers and oceans; <b>infiltration</b> into soil, where it may be taken up by roots, evaporate back from the surface, or percolate deeper to recharge <b>aquifers</b>. Aquifers are subsurface formations of permeable rock, sediment, or soil saturated with groundwater — the source of roughly 30% of global freshwater and the lifeline of vast agricultural regions."),
+          ]},
+}
 
-def nav(v): st.session_state.view = v
+# ─────────────────────────────────────────────────────────────────────
+#  SESSION STATE
+# ─────────────────────────────────────────────────────────────────────
+if "view"     not in st.session_state: st.session_state.view     = "home"
+if "unlocked" not in st.session_state: st.session_state.unlocked = {"c1"}
+for c in COURSES:
+    for k,d in [("started",False),("done",False),("score",0)]:
+        if f"{c}_{k}" not in st.session_state:
+            st.session_state[f"{c}_{k}"] = d
 
-# ── CSS ───────────────────────────────────────────────────────────────────────
+def go(v): st.session_state.view = v
+
+# ─────────────────────────────────────────────────────────────────────
+#  CSS  — Apple-minimal design system
+# ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* ── Inter font + reset ─────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-*, html, body, [class*="css"] {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    -webkit-font-smoothing: antialiased !important;
-    box-sizing: border-box;
+/* ── tokens ── */
+:root{
+  --bg:        #f5f5f7;
+  --card:      #ffffff;
+  --border:    rgba(0,0,0,0.09);
+  --ink:       #1d1d1f;
+  --ink2:      #6e6e73;
+  --ink3:      #aeaeb2;
+  --blue:      #0071e3;
+  --blue2:     #0077ed;
+  --s1: 0 1px 4px rgba(0,0,0,.06), 0 2px 12px rgba(0,0,0,.05);
+  --s2: 0 4px 24px rgba(0,0,0,.10), 0 1px 4px rgba(0,0,0,.05);
+  --s3: 0 12px 40px rgba(0,0,0,.14), 0 2px 8px rgba(0,0,0,.06);
+  --r:  12px;
+  --rr: 16px;
+  --ease: cubic-bezier(.4,0,.2,1);
 }
 
-/* ── Design tokens ──────────────────────────────────────────────── */
-:root {
-    --blue:    #1a73e8;
-    --blue-dk: #1557b0;
-    --green:   #1e8e3e;
-    --red:     #d93025;
-    --yellow:  #b06000;
-    --purple:  #7b1fa2;
-    --bg:      #f1f3f4;
-    --surface: #ffffff;
-    --border:  #e0e0e0;
-    --t1:      #202124;
-    --t2:      #5f6368;
-    --t3:      #80868b;
-    --sh1: 0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
-    --sh2: 0 1px 3px rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15);
-    --sh3: 0 4px 8px rgba(60,64,67,.2), 0 8px 16px 4px rgba(60,64,67,.12);
+/* ── global reset ── */
+*, html, body, [class*="css"]{
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  -webkit-font-smoothing: antialiased !important;
+  box-sizing: border-box;
 }
-
-/* ── App + Streamlit overrides ──────────────────────────────────── */
 .stApp { background: var(--bg) !important; }
 #MainMenu, footer, header { visibility: hidden; }
+
+/* ── kill streamlit layout defaults ── */
 .block-container { padding: 0 !important; max-width: 100% !important; }
 .main > div { padding: 0 !important; }
-section[data-testid="stSidebar"] > div { padding-top: 0 !important; }
 
-/* ── Sidebar ────────────────────────────────────────────────────── */
+/* ── sidebar ── */
 section[data-testid="stSidebar"] {
-    background: var(--surface) !important;
-    border-right: 1px solid var(--border) !important;
-    width: 256px !important;
-    min-width: 256px !important;
+  background: rgba(255,255,255,0.82) !important;
+  backdrop-filter: blur(28px) saturate(1.6) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.6) !important;
+  border-right: 1px solid var(--border) !important;
+  width: 248px !important; min-width: 248px !important;
 }
 section[data-testid="stSidebar"] > div {
-    width: 256px !important;
-    padding: 0 !important;
+  width: 248px !important; padding: 0 !important;
 }
 
-/* Always-visible collapsed toggle */
+/* always-visible hamburger when sidebar is closed */
 [data-testid="collapsedControl"] {
-    visibility: visible !important;
-    display: flex !important;
-    opacity: 1 !important;
-    position: fixed !important;
-    top: 16px !important;
-    left: 16px !important;
-    z-index: 99999 !important;
-    width: 40px !important;
-    height: 40px !important;
-    border-radius: 50% !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    cursor: pointer !important;
-    align-items: center !important;
-    justify-content: center !important;
-    transition: background .15s !important;
+  visibility: visible !important; display: flex !important;
+  opacity: 1 !important; position: fixed !important;
+  top: 14px !important; left: 14px !important;
+  z-index: 9999 !important; width: 38px !important; height: 38px !important;
+  background: rgba(255,255,255,.88) !important;
+  backdrop-filter: blur(16px) !important;
+  border-radius: 50% !important; border: none !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,.12) !important;
+  cursor: pointer !important; align-items: center !important;
+  justify-content: center !important;
+  transition: background .15s, box-shadow .15s !important;
 }
-[data-testid="collapsedControl"]:hover { background: rgba(32,33,36,.08) !important; }
-[data-testid="collapsedControl"] svg { width: 20px !important; height: 20px !important; color: #5f6368 !important; }
+[data-testid="collapsedControl"]:hover {
+  background: #fff !important; box-shadow: 0 4px 16px rgba(0,0,0,.16) !important;
+}
+[data-testid="collapsedControl"] svg {
+  width: 18px !important; height: 18px !important; color: #3c3c3e !important;
+}
 
-/* ── All sidebar nav buttons ────────────────────────────────────── */
+/* ── all Streamlit buttons → sidebar pill links ── */
 div[data-testid="stButton"] > button {
-    font-family: 'Inter', sans-serif !important;
-    font-size: .875rem !important;
-    font-weight: 500 !important;
-    color: var(--t1) !important;
-    background: transparent !important;
-    border: none !important;
-    border-radius: 0 24px 24px 0 !important;
-    padding: 0 24px !important;
-    height: 48px !important;
-    width: 100% !important;
-    text-align: left !important;
-    letter-spacing: 0 !important;
-    cursor: pointer !important;
-    transition: background .15s ease !important;
-    display: flex !important;
-    align-items: center !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: .875rem !important; font-weight: 500 !important;
+  color: var(--ink) !important; background: transparent !important;
+  border: none !important; border-radius: var(--r) !important;
+  padding: 0 14px !important; height: 44px !important;
+  text-align: left !important; width: 100% !important;
+  letter-spacing: -.01em !important; cursor: pointer !important;
+  transition: background .15s var(--ease), color .15s var(--ease) !important;
+  display: flex !important; align-items: center !important;
 }
-div[data-testid="stButton"] > button:hover { background: #f1f3f4 !important; }
-div[data-testid="stButton"] > button:active { background: #e8eaed !important; }
+div[data-testid="stButton"] > button:hover {
+  background: rgba(0,0,0,.05) !important;
+}
+div[data-testid="stButton"] > button:active {
+  background: rgba(0,0,0,.09) !important;
+}
 
-/* Form submit button */
+/* form submit / primary actions */
 div[data-testid="stForm"] div[data-testid="stButton"] > button {
-    background: var(--blue) !important;
-    color: #fff !important;
-    border-radius: 6px !important;
-    padding: 0 20px !important;
-    height: 38px !important;
-    font-size: .875rem !important;
-    font-weight: 500 !important;
-    width: auto !important;
-    text-align: center !important;
-    box-shadow: none !important;
-    transition: background .15s, box-shadow .15s !important;
+  background: var(--blue) !important; color: #fff !important;
+  border-radius: 980px !important; padding: 0 22px !important;
+  height: 38px !important; font-size: .875rem !important;
+  font-weight: 600 !important; width: auto !important;
+  text-align: center !important; justify-content: center !important;
+  letter-spacing: -.01em !important;
+  box-shadow: 0 1px 6px rgba(0,113,227,.25) !important;
+  transition: background .15s, transform .12s, box-shadow .15s !important;
 }
 div[data-testid="stForm"] div[data-testid="stButton"] > button:hover {
-    background: var(--blue-dk) !important;
-    box-shadow: var(--sh1) !important;
+  background: var(--blue2) !important;
+  box-shadow: 0 4px 16px rgba(0,113,227,.35) !important;
+  transform: scale(1.02) !important;
+}
+div[data-testid="stForm"] div[data-testid="stButton"] > button:active {
+  transform: scale(0.98) !important;
 }
 
-/* Radio */
+/* radio groups */
 div[role="radiogroup"] {
-    background: var(--surface) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 8px !important;
-    padding: 12px 16px !important;
-    margin-bottom: 8px !important;
-    box-shadow: none !important;
-    transition: border-color .15s, box-shadow .15s !important;
+  background: var(--card) !important; border: 1px solid var(--border) !important;
+  border-radius: var(--r) !important; padding: 14px 16px !important;
+  margin-bottom: 8px !important; box-shadow: none !important;
+  transition: border-color .15s, box-shadow .15s !important;
 }
 div[role="radiogroup"]:focus-within {
-    border-color: var(--blue) !important;
-    box-shadow: 0 0 0 2px rgba(26,115,232,.12) !important;
+  border-color: var(--blue) !important;
+  box-shadow: 0 0 0 3px rgba(0,113,227,.1) !important;
 }
 
-/* ── Keyframe animations ─────────────────────────────────────────── */
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
+/* ── keyframes ── */
+@keyframes up {
+  from { opacity:0; transform:translateY(16px) }
+  to   { opacity:1; transform:translateY(0) }
 }
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+@keyframes dn {
+  from { opacity:0; transform:translateY(-10px) }
+  to   { opacity:1; transform:translateY(0) }
 }
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-8px); }
-    to   { opacity: 1; transform: translateY(0); }
+@keyframes fi { from{opacity:0} to{opacity:1} }
+@keyframes pop {
+  0%   { opacity:0; transform:scale(.9) }
+  65%  { transform:scale(1.02) }
+  100% { opacity:1; transform:scale(1) }
 }
-@keyframes popIn {
-    0%   { opacity: 0; transform: scale(.92); }
-    60%  { transform: scale(1.02); }
-    100% { opacity: 1; transform: scale(1); }
-}
-@keyframes shimmer {
-    0%   { background-position: -400px 0; }
-    100% { background-position: 400px 0; }
-}
+.u0{animation:up .38s var(--ease) both}
+.u1{animation:up .38s .06s var(--ease) both}
+.u2{animation:up .38s .12s var(--ease) both}
+.u3{animation:up .38s .18s var(--ease) both}
+.u4{animation:up .38s .24s var(--ease) both}
+.u5{animation:up .38s .30s var(--ease) both}
+.u6{animation:up .38s .36s var(--ease) both}
+.u7{animation:up .38s .42s var(--ease) both}
+.pop{animation:pop .42s cubic-bezier(.34,1.4,.64,1) both}
+.fi {animation:fi  .3s ease both}
 
-.anim-up   { animation: fadeUp   .35s cubic-bezier(.4,0,.2,1) both; }
-.anim-in   { animation: fadeIn   .3s  ease both; }
-.anim-down { animation: slideDown .3s ease both; }
-.anim-pop  { animation: popIn    .4s  cubic-bezier(.34,1.4,.64,1) both; }
-.d0  { animation-delay: 0s; }
-.d1  { animation-delay: .06s; }
-.d2  { animation-delay: .12s; }
-.d3  { animation-delay: .18s; }
-.d4  { animation-delay: .24s; }
-.d5  { animation-delay: .30s; }
-.d6  { animation-delay: .36s; }
-
-/* ── Sidebar internals ───────────────────────────────────────────── */
-.sb-head {
-    height: 64px;
-    display: flex;
-    align-items: center;
-    padding: 0 16px;
-    border-bottom: 1px solid var(--border);
-    gap: 8px;
+/* ────────────────────────────────────────────────
+   SIDEBAR INTERNALS
+──────────────────────────────────────────────── */
+.sb {
+  display:flex; flex-direction:column; height:100vh;
 }
-.sb-logo-mark {
-    width: 32px; height: 32px;
-    border-radius: 6px;
-    background: #1e8e3e;
-    display: flex; align-items: center; justify-content: center;
-    font-size: .9rem; font-weight: 700; color: #fff;
-    flex-shrink: 0;
+.sb-top {
+  padding: 20px 16px 14px;
+  border-bottom: 1px solid var(--border);
 }
 .sb-wordmark {
-    font-size: 1.0625rem;
-    font-weight: 600;
-    color: var(--t2);
-    letter-spacing: -.01em;
+  font-size: 1.125rem; font-weight: 700;
+  color: var(--ink); letter-spacing: -.03em; line-height:1;
 }
-.sb-wordmark span { color: #1e8e3e; }
-.sb-divider { height: 1px; background: var(--border); margin: 8px 0; }
-.sb-label {
-    font-size: .6875rem;
-    font-weight: 600;
-    color: var(--t3);
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    padding: 12px 16px 4px;
+.sb-tagline {
+  font-size: .6875rem; font-weight: 500;
+  color: var(--ink3); letter-spacing: .04em;
+  text-transform: uppercase; margin-top: 2px;
 }
-.sb-foot {
-    padding: 12px 16px;
-    font-size: .7rem;
-    color: var(--t3);
-    border-top: 1px solid var(--border);
-    margin-top: 8px;
-    line-height: 1.6;
+.sb-section {
+  font-size: .625rem; font-weight: 700;
+  color: var(--ink3); text-transform: uppercase;
+  letter-spacing: .1em; padding: 16px 14px 4px;
+}
+.sb-body { flex:1; padding: 6px 6px; overflow-y:auto; }
+.sb-footer {
+  padding: 12px 16px; font-size: .6875rem;
+  color: var(--ink3); border-top: 1px solid var(--border);
+  line-height: 1.6;
 }
 
-/* ── Top bar ─────────────────────────────────────────────────────── */
-.topbar {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    height: 64px;
-    display: flex;
-    align-items: center;
-    padding: 0 24px;
-    gap: 12px;
-    position: sticky;
-    top: 0;
-    z-index: 500;
-    animation: slideDown .3s ease both;
+/* ────────────────────────────────────────────────
+   TOP NAV BAR
+──────────────────────────────────────────────── */
+.topnav {
+  background: rgba(255,255,255,.82);
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 500;
+  height: 52px; display: flex; align-items: center;
+  padding: 0 28px; gap: 12px;
+  animation: dn .3s ease both;
 }
-.topbar-brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.topnav-title {
+  font-size: 1rem; font-weight: 700;
+  color: var(--ink); letter-spacing: -.02em;
 }
-.topbar-logo-mark {
-    width: 36px; height: 36px;
-    border-radius: 8px;
-    background: #1e8e3e;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1rem; font-weight: 700; color: #fff;
+.topnav-crumb {
+  font-size: .875rem; color: var(--ink3);
+  font-weight: 400;
 }
-.topbar-name {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: var(--t2);
-    letter-spacing: -.01em;
+.topnav-sep { color: var(--ink3); font-size: .875rem; }
+.topnav-pill {
+  margin-left: auto;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--blue); color: #fff;
+  font-size: .8125rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,113,227,.3);
+  transition: transform .15s, box-shadow .15s;
 }
-.topbar-name span { color: #1e8e3e; }
-.topbar-space { flex: 1; }
-.topbar-avatar {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: var(--blue);
-    color: #fff;
-    font-size: .875rem;
-    font-weight: 600;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: box-shadow .15s;
+.topnav-pill:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 14px rgba(0,113,227,.4);
 }
-.topbar-avatar:hover { box-shadow: 0 0 0 3px rgba(26,115,232,.2); }
 
-/* ── Page wrapper ─────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────
+   PAGE WRAPPER
+──────────────────────────────────────────────── */
 .page {
-    padding: 28px 32px 80px;
-    max-width: 1400px;
-    margin: 0 auto;
-    width: 100%;
+  padding: 32px 36px 88px;
+  max-width: 1360px;
+  margin: 0 auto;
 }
 
-/* ── Welcome heading ─────────────────────────────────────────────── */
-.page-title {
-    font-size: 1.625rem;
-    font-weight: 700;
-    color: var(--t1);
-    letter-spacing: -.02em;
-    margin: 0 0 20px;
-    animation: fadeUp .35s ease both;
+/* ────────────────────────────────────────────────
+   HOME — hero
+──────────────────────────────────────────────── */
+.hero {
+  margin-bottom: 28px;
+}
+.hero-greeting {
+  font-size: 2rem; font-weight: 800;
+  color: var(--ink); letter-spacing: -.045em;
+  line-height: 1.15; margin-bottom: 6px;
+}
+.hero-sub {
+  font-size: .9375rem; color: var(--ink2);
+  font-weight: 400; letter-spacing: -.01em;
 }
 
-/* ── Stat strip ──────────────────────────────────────────────────── */
+/* ── stat row ── */
 .stats {
-    background: var(--surface);
-    border-radius: 12px;
-    box-shadow: var(--sh1);
-    display: flex;
-    margin-bottom: 28px;
-    overflow: hidden;
-    animation: fadeUp .35s ease .06s both;
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 12px;
+  margin-bottom: 32px;
 }
 .stat {
-    flex: 1;
-    padding: 20px 16px;
-    text-align: center;
-    border-right: 1px solid var(--border);
-    transition: background .15s;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 18px 20px;
+  box-shadow: var(--s1);
+  transition: box-shadow .2s var(--ease), transform .2s var(--ease);
 }
-.stat:last-child { border-right: none; }
-.stat:hover { background: #fafafa; }
+.stat:hover { box-shadow: var(--s2); transform: translateY(-1px); }
 .stat-n {
-    font-size: 1.875rem;
-    font-weight: 700;
-    letter-spacing: -.03em;
-    line-height: 1;
-    margin-bottom: 4px;
+  font-size: 1.875rem; font-weight: 800;
+  letter-spacing: -.05em; line-height: 1; margin-bottom: 4px;
 }
 .stat-l {
-    font-size: .6875rem;
-    font-weight: 600;
-    color: var(--t3);
-    text-transform: uppercase;
-    letter-spacing: .07em;
+  font-size: .6875rem; font-weight: 600;
+  color: var(--ink3); text-transform: uppercase; letter-spacing: .07em;
+}
+.stat-bar {
+  height: 3px; background: rgba(0,0,0,.06);
+  border-radius: 99px; overflow: hidden; margin-top: 14px;
+}
+.stat-fill {
+  height: 100%; border-radius: 99px;
+  transition: width 1.2s cubic-bezier(.4,0,.2,1);
 }
 
-/* ── Section eyebrow ─────────────────────────────────────────────── */
-.eyebrow {
-    font-size: .6875rem;
-    font-weight: 600;
-    color: var(--t3);
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    margin: 0 0 12px;
+/* ── section label ── */
+.section-label {
+  font-size: .6875rem; font-weight: 700;
+  color: var(--ink3); text-transform: uppercase;
+  letter-spacing: .09em; margin-bottom: 14px;
 }
 
-/* ── Class card (home) ───────────────────────────────────────────── */
+/* ── course cards ── */
+.cards-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 14px;
+}
 .ccard {
-    background: var(--surface);
-    border-radius: 12px;
-    box-shadow: var(--sh1);
-    overflow: hidden;
-    transition: box-shadow .2s ease, transform .2s ease;
-    cursor: pointer;
-    margin-bottom: 0;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+  background: var(--card); border-radius: var(--rr);
+  border: 1px solid var(--border); box-shadow: var(--s1);
+  overflow: hidden; display: flex; flex-direction: column;
+  transition: box-shadow .22s var(--ease), transform .22s var(--ease);
+  cursor: pointer;
 }
-.ccard:hover { box-shadow: var(--sh2); transform: translateY(-2px); }
-.ccard-head {
-    height: 100px;
-    position: relative;
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    overflow: hidden;
-}
-.ccard-head::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,.3) 0%, transparent 55%);
-}
-.ccard-dots {
-    position: absolute; inset: 0;
-    background-image: radial-gradient(circle, rgba(255,255,255,.14) 1.5px, transparent 1.5px);
-    background-size: 20px 20px;
-}
-.ccard-ico {
-    position: absolute;
-    top: 12px; right: 14px;
-    font-size: 1.9rem;
-    z-index: 1;
-    transition: transform .2s ease;
-    line-height: 1;
-}
-.ccard:hover .ccard-ico { transform: scale(1.1) rotate(-5deg); }
+.ccard:hover { box-shadow: var(--s3); transform: translateY(-3px); }
+.ccard-strip { height: 4px; flex-shrink: 0; }
+.ccard-body { padding: 18px 18px 14px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.ccard-icon { font-size: 1.6rem; line-height: 1; }
 .ccard-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: -.02em;
-    position: relative; z-index: 1;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 1rem; font-weight: 700;
+  color: var(--ink); letter-spacing: -.02em; margin: 0;
 }
-.ccard-section {
-    font-size: .7rem;
-    color: rgba(255,255,255,.85);
-    position: relative; z-index: 1;
-    margin-top: 2px;
+.ccard-sub { font-size: .8125rem; color: var(--ink2); line-height: 1.4; }
+.ccard-meta {
+  font-size: .75rem; color: var(--ink3);
+  border-top: 1px solid rgba(0,0,0,.05);
+  margin-top: auto; padding-top: 12px;
+  display: flex; align-items: center;
+  justify-content: space-between;
 }
-.ccard-body { padding: 12px 14px 10px; flex: 1; }
-.ccard-teacher { font-size: .75rem; color: var(--t2); margin-bottom: 6px; }
-.ccard-foot {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 14px 10px;
-    border-top: 1px solid #f1f3f4;
+.badge {
+  font-size: .6875rem; font-weight: 600; padding: 3px 10px;
+  border-radius: 100px; display: inline-flex; align-items: center; gap: 4px;
 }
-.ccard-count { font-size: .7rem; color: var(--t3); }
+.badge-active { background: rgba(0,113,227,.1); color: var(--blue); }
+.badge-done   { background: rgba(52,199,89,.12); color: #248a3d; }
+.badge-lock   { background: rgba(0,0,0,.06); color: var(--ink3); }
 
-/* ── Chips ───────────────────────────────────────────────────────── */
-.chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: .6875rem;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 100px;
-    letter-spacing: .01em;
+/* ────────────────────────────────────────────────
+   CLASS VIEW
+──────────────────────────────────────────────── */
+.class-header {
+  border-radius: var(--rr); margin-bottom: 24px;
+  overflow: hidden; position: relative;
+  padding: 32px 32px 28px;
+  animation: fi .35s ease both;
 }
-.chip-blue   { background: #e8f0fe; color: #1a73e8; }
-.chip-green  { background: #e6f4ea; color: #1e8e3e; }
-.chip-gray   { background: #f1f3f4; color: #5f6368; }
-.chip-red    { background: #fce8e6; color: #d93025; }
-.chip-yellow { background: #fef7e0; color: #b06000; }
-
-/* ── Stream banner ───────────────────────────────────────────────── */
-.stream-banner {
-    border-radius: 12px;
-    overflow: hidden;
-    height: 200px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 24px 28px;
-    animation: fadeIn .35s ease both;
+.class-header::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg,rgba(0,0,0,.18) 0%,transparent 70%);
 }
-.stream-banner::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,.5) 0%, transparent 60%);
+.class-header-content { position: relative; z-index: 1; }
+.ch-label {
+  font-size: .75rem; font-weight: 600;
+  color: rgba(255,255,255,.7); text-transform: uppercase;
+  letter-spacing: .1em; margin-bottom: 6px;
 }
-.stream-banner-dots {
-    position: absolute; inset: 0;
-    background-image: radial-gradient(circle, rgba(255,255,255,.1) 1.5px, transparent 1.5px);
-    background-size: 22px 22px;
+.ch-title {
+  font-size: 1.875rem; font-weight: 800;
+  color: #fff; letter-spacing: -.04em; line-height: 1.1;
+  margin-bottom: 4px;
 }
-.stream-title {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: -.03em;
-    position: relative; z-index: 1;
-    line-height: 1.2;
+.ch-sub { font-size: .9375rem; color: rgba(255,255,255,.75); }
+.ch-chips {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px;
 }
-.stream-sub {
-    font-size: .875rem;
-    color: rgba(255,255,255,.85);
-    position: relative; z-index: 1;
-    margin-top: 4px;
+.wchip {
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.25);
+  backdrop-filter: blur(8px);
+  color: #fff; font-size: .75rem; font-weight: 500;
+  padding: 4px 12px; border-radius: 100px;
 }
 
-/* ── Tab bar ─────────────────────────────────────────────────────── */
-.tabs {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    margin-bottom: 24px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-.tab {
-    font-size: .875rem;
-    font-weight: 500;
-    color: var(--t2);
-    padding: 14px 20px;
-    border-bottom: 3px solid transparent;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: color .15s, border-color .15s, background .15s;
-    letter-spacing: -.005em;
-}
-.tab.active { color: var(--blue); border-bottom-color: var(--blue); }
-.tab:hover:not(.active) { background: #f8f9fa; color: var(--t1); }
+/* two-column classwork */
+.classwork { display: grid; grid-template-columns: 1fr 360px; gap: 20px; align-items: start; }
 
-/* ── Lesson material card ────────────────────────────────────────── */
-.lesson-card {
-    background: var(--surface);
-    border-radius: 10px;
-    box-shadow: var(--sh1);
-    margin-bottom: 12px;
-    overflow: hidden;
-    transition: box-shadow .2s ease;
-    animation: fadeUp .35s ease both;
+/* lesson cards */
+.lesson {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--r); box-shadow: var(--s1);
+  margin-bottom: 10px; overflow: hidden;
+  transition: box-shadow .2s var(--ease), border-color .2s var(--ease);
 }
-.lesson-card:hover { box-shadow: var(--sh2); }
-.lc-head {
-    display: flex;
-    align-items: center;
-    padding: 14px 16px 12px;
-    gap: 12px;
-    border-bottom: 1px solid #f1f3f4;
+.lesson:hover { box-shadow: var(--s2); border-color: rgba(0,0,0,.13); }
+.lesson-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px 12px; border-bottom: 1px solid rgba(0,0,0,.05);
 }
-.lc-ico {
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.15rem;
-    flex-shrink: 0;
-    transition: transform .2s ease;
+.lesson-ico {
+  width: 36px; height: 36px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+  transition: transform .2s var(--ease);
 }
-.lesson-card:hover .lc-ico { transform: scale(1.08); }
-.lc-title {
-    font-size: .9375rem;
-    font-weight: 600;
-    color: var(--t1);
-    letter-spacing: -.01em;
+.lesson:hover .lesson-ico { transform: scale(1.08) rotate(-4deg); }
+.lesson-title {
+  font-size: .9375rem; font-weight: 700;
+  color: var(--ink); letter-spacing: -.02em; line-height: 1.2;
 }
-.lc-sub {
-    font-size: .75rem;
-    color: var(--t3);
-    margin-top: 1px;
-}
-.lc-body {
-    padding: 14px 16px 16px;
-}
-.lc-body p {
-    font-size: .875rem !important;
-    color: var(--t2) !important;
-    line-height: 1.8 !important;
-    margin: 0 !important;
+.lesson-tag { font-size: .6875rem; color: var(--ink3); margin-top: 1px; }
+.lesson-body { padding: 14px 16px 16px; }
+.lesson-body p {
+  font-size: .875rem !important; color: var(--ink2) !important;
+  line-height: 1.85 !important; margin: 0 !important;
+  letter-spacing: -.005em !important;
 }
 
-/* ── Quiz panel ──────────────────────────────────────────────────── */
-.quiz-panel {
-    background: var(--surface);
-    border-radius: 10px;
-    box-shadow: var(--sh1);
-    overflow: hidden;
-    animation: fadeUp .35s ease .1s both;
+/* quiz panel */
+.qpanel {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--rr); box-shadow: var(--s1);
+  position: sticky; top: 70px;
 }
-.quiz-panel-head {
-    display: flex;
-    align-items: center;
-    padding: 16px 18px;
-    gap: 14px;
-    border-bottom: 1px solid #f1f3f4;
+.qpanel-top {
+  padding: 18px 18px 14px; border-bottom: 1px solid rgba(0,0,0,.06);
+  display: flex; gap: 12px; align-items: flex-start;
 }
-.quiz-panel-ico {
-    width: 44px; height: 44px;
-    border-radius: 50%;
-    background: #e8f0fe;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.3rem;
-    flex-shrink: 0;
+.qpanel-ico {
+  width: 42px; height: 42px; border-radius: 11px;
+  background: rgba(0,113,227,.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; flex-shrink: 0;
 }
-.quiz-panel-title {
-    font-size: .9375rem;
-    font-weight: 600;
-    color: var(--t1);
-    margin: 0;
-    letter-spacing: -.01em;
+.qpanel-title {
+  font-size: .9375rem; font-weight: 700;
+  color: var(--ink); margin: 0; letter-spacing: -.02em;
 }
-.quiz-panel-sub {
-    font-size: .75rem;
-    color: var(--t3);
-    margin: 2px 0 0;
+.qpanel-sub { font-size: .75rem; color: var(--ink3); margin-top: 2px; }
+.qpanel-body { padding: 16px 18px; }
+.qlabel {
+  font-size: .625rem; font-weight: 700;
+  color: var(--ink3); text-transform: uppercase;
+  letter-spacing: .1em; margin-bottom: 4px;
 }
-.quiz-panel-body { padding: 16px 18px; }
-.q-label {
-    font-size: .6875rem;
-    font-weight: 600;
-    color: var(--t3);
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    margin-bottom: 4px;
-}
-hr.qdiv {
-    border: none;
-    border-top: 1px solid #f1f3f4;
-    margin: 12px 0;
-}
+.qdivider { border:none; border-top: 1px solid rgba(0,0,0,.06); margin: 12px 0; }
 
-/* ── Result cards ────────────────────────────────────────────────── */
-.result-pass {
-    background: #e6f4ea;
-    border: 1px solid #ceead6;
-    border-radius: 10px;
-    padding: 20px 22px;
-    display: flex;
-    align-items: flex-start;
-    gap: 18px;
-    flex-wrap: wrap;
-    margin: 14px 0;
-    animation: popIn .4s cubic-bezier(.34,1.4,.64,1) both;
+/* result cards */
+.res {
+  border-radius: var(--r); padding: 18px 20px;
+  display: flex; align-items: flex-start; gap: 16px;
+  flex-wrap: wrap; margin: 14px 0;
 }
-.result-fail {
-    background: #fce8e6;
-    border: 1px solid #f5c6c5;
-    border-radius: 10px;
-    padding: 20px 22px;
-    display: flex;
-    align-items: flex-start;
-    gap: 18px;
-    flex-wrap: wrap;
-    margin: 14px 0;
-    animation: popIn .4s cubic-bezier(.34,1.4,.64,1) both;
+.res-pass { background: rgba(52,199,89,.09); border: 1px solid rgba(52,199,89,.28); }
+.res-fail { background: rgba(255,59,48,.07); border: 1px solid rgba(255,59,48,.24); }
+.res-score {
+  font-size: 2.75rem; font-weight: 800;
+  letter-spacing: -.06em; line-height: 1; flex-shrink: 0;
 }
-.result-score {
-    font-size: 3rem;
-    font-weight: 800;
-    line-height: 1;
-    letter-spacing: -.05em;
-    flex-shrink: 0;
+.res-pass .res-score { color: #248a3d; }
+.res-fail .res-score { color: #c91e14; }
+.res-tag {
+  font-size: .6875rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .08em; margin-top: 4px;
 }
-.result-pass .result-score { color: #1e8e3e; }
-.result-fail .result-score { color: #d93025; }
-.result-badge {
-    font-size: .6875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .07em;
-    margin-top: 4px;
-}
-.result-pass .result-badge { color: #1e8e3e; }
-.result-fail .result-badge { color: #d93025; }
-.result-msg {
-    font-size: .875rem;
-    color: #3c4043;
-    line-height: 1.7;
-}
-.result-msg strong { color: var(--t1); }
+.res-pass .res-tag { color: #248a3d; }
+.res-fail .res-tag { color: #c91e14; }
+.res-msg { font-size: .8125rem; color: var(--ink2); line-height: 1.7; }
+.res-msg b { color: var(--ink); }
 
-/* ── Grades table ────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────
+   GRADES
+──────────────────────────────────────────────── */
 .gtable {
-    background: var(--surface);
-    border-radius: 12px;
-    box-shadow: var(--sh1);
-    width: 100%;
-    border-collapse: collapse;
-    overflow: hidden;
-    animation: fadeUp .35s ease .1s both;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--rr); box-shadow: var(--s1);
+  width: 100%; border-collapse: collapse; overflow: hidden;
 }
 .gtable th {
-    background: #f8f9fa;
-    padding: 10px 16px;
-    font-size: .6875rem;
-    font-weight: 600;
-    color: var(--t3);
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,.025); padding: 10px 18px;
+  font-size: .625rem; font-weight: 700; color: var(--ink3);
+  text-transform: uppercase; letter-spacing: .09em;
+  text-align: left; border-bottom: 1px solid var(--border);
 }
 .gtable td {
-    padding: 13px 16px;
-    border-bottom: 1px solid #f1f3f4;
-    font-size: .875rem;
-    color: var(--t1);
-    vertical-align: middle;
+  padding: 14px 18px; border-bottom: 1px solid rgba(0,0,0,.04);
+  font-size: .875rem; color: var(--ink); vertical-align: middle;
 }
 .gtable tr:last-child td { border-bottom: none; }
-.gtable tr:hover td { background: #f8f9fa; }
-.gmono { font-weight: 600; font-size: .875rem; }
+.gtable tr { transition: background .12s; }
+.gtable tr:hover td { background: rgba(0,0,0,.018); }
+.gm { font-weight: 700; font-size: .875rem; }
 
-/* ── Mobile ──────────────────────────────────────────────────────── */
-@media (max-width: 768px) {
-    .page { padding: 16px 12px 72px; }
-    .topbar { padding: 0 12px; }
-    .topbar-name { font-size: .9375rem; }
-    .stats { flex-wrap: wrap; }
-    .stat { min-width: 130px; border-right: none; border-bottom: 1px solid var(--border); }
-    .stat:last-child { border-bottom: none; }
-    .stat-n { font-size: 1.5rem; }
-    .stream-banner { height: 160px; border-radius: 8px; }
-    .stream-title { font-size: 1.35rem; }
-    .page-title { font-size: 1.35rem; }
-    .gtable { display: block; overflow-x: auto; }
+/* ────────────────────────────────────────────────
+   MOBILE RESPONSIVE
+──────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .cards-grid { grid-template-columns: repeat(2,1fr); }
+  .classwork   { grid-template-columns: 1fr; }
+  .qpanel      { position: static; }
+  .stats       { grid-template-columns: repeat(2,1fr); }
 }
-@media (max-width: 480px) {
-    .page { padding: 12px 10px 72px; }
-    .topbar-name { display: none; }
-    .stream-title { font-size: 1.2rem; }
-    .tabs { gap: 0; }
-    .tab { padding: 12px 14px; font-size: .8125rem; }
+@media (max-width: 640px) {
+  .page        { padding: 16px 14px 72px; }
+  .topnav      { padding: 0 14px; }
+  .cards-grid  { grid-template-columns: 1fr; }
+  .stats       { grid-template-columns: repeat(2,1fr); gap: 8px; }
+  .hero-greeting { font-size: 1.5rem; }
+  .class-header { padding: 22px 18px 20px; }
+  .ch-title    { font-size: 1.4rem; }
+  .gtable      { display: block; overflow-x: auto; }
+  .qpanel      { border-radius: var(--r); }
+}
+@media (max-width: 420px) {
+  .stats { grid-template-columns: 1fr 1fr; }
+  .stat-n { font-size: 1.5rem; }
+  .page { padding: 12px 10px 64px; }
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────
+#  SIDEBAR
+# ─────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("""
-    <div class="sb-head">
-        <div class="sb-logo-mark">D</div>
-        <div class="sb-wordmark">Danilo <span>Classroom</span></div>
+    <div class="sb">
+      <div class="sb-top">
+        <div class="sb-wordmark">Danilo</div>
+        <div class="sb-tagline">Learning Platform</div>
+      </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div style="height:6px"></div>', unsafe_allow_html=True)
-    st.button("🏠  Home",    on_click=nav, args=("home",),   use_container_width=True)
-    st.button("📊  Grades",  on_click=nav, args=("grades",), use_container_width=True)
+    st.markdown('<div class="sb-section">Menu</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sb-body">', unsafe_allow_html=True)
+    st.button("🏠  Home",    on_click=go, args=("home",),   use_container_width=True)
+    st.button("📊  Grades",  on_click=go, args=("grades",), use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="sb-label">Classes</div>', unsafe_allow_html=True)
-    for mk, mod in MODS.items():
-        locked = mk not in st.session_state.unlocked
-        lbl = f"{'🔒  ' if locked else mod['icon']+'  '}{mod['label']}"
-        st.button(lbl, on_click=nav, args=(mk,), disabled=locked, use_container_width=True)
+    st.markdown('<div class="sb-section">Courses</div>', unsafe_allow_html=True)
+    for ck, course in COURSES.items():
+        locked = ck not in st.session_state.unlocked
+        ico = course["color"]
+        lbl = f"{'🔒' if locked else '●'}  {course['title']}"
+        st.button(lbl, on_click=go, args=(ck,), disabled=locked, use_container_width=True)
 
-    st.markdown('<div style="flex:1"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="sb-foot">© 2025 DANILO Classroom<br>All rights reserved.</div>', unsafe_allow_html=True)
-
-# ── Top bar ───────────────────────────────────────────────────────────────────
-st.markdown("""
-<div class="topbar">
-    <div class="topbar-brand">
-        <div class="topbar-logo-mark">D</div>
-        <div class="topbar-name">Danilo <span>Classroom</span></div>
+    st.markdown("""
+    <div class="sb-footer">
+      © 2025 Danilo Learning<br>All rights reserved.
     </div>
-    <div class="topbar-space"></div>
-    <div class="topbar-avatar">D</div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-# ── Page wrapper ──────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────
+#  TOP NAV
+# ─────────────────────────────────────────────────────────────────────
+v = st.session_state.view
+if v == "home":
+    topnav_html = '<div class="topnav"><div class="topnav-title">Home</div><div class="topnav-pill">D</div></div>'
+elif v == "grades":
+    topnav_html = '<div class="topnav"><div class="topnav-crumb">Home</div><div class="topnav-sep">/</div><div class="topnav-title">Grades</div><div class="topnav-pill">D</div></div>'
+elif v in COURSES:
+    topnav_html = f'<div class="topnav"><div class="topnav-crumb">Home</div><div class="topnav-sep">/</div><div class="topnav-title">{COURSES[v]["title"]}</div><div class="topnav-pill">D</div></div>'
+else:
+    topnav_html = '<div class="topnav"><div class="topnav-pill">D</div></div>'
+st.markdown(topnav_html, unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────────────────────────────
+#  PAGE CONTENT
+# ─────────────────────────────────────────────────────────────────────
 st.markdown('<div class="page">', unsafe_allow_html=True)
 
-# ════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════
 #  HOME
-# ════════════════════════════════════════════════════════════
-if st.session_state.view == "home":
-    st.markdown('<div class="page-title">Welcome back, Danilo 👋</div>', unsafe_allow_html=True)
-
-    all_m  = ["1","2","3","4"]
-    taken  = [st.session_state[f"m{m}_qr"] for m in all_m if st.session_state[f"m{m}_qd"]]
+# ══════════════════════════════════════════════
+if v == "home":
+    am = ["1","2","3","4"]
+    taken  = [st.session_state[f"c{i}_score"] for i in ["1","2","3","4"] if st.session_state[f"c{i}_done"]]
     avg    = (sum(taken)/(len(taken)*5)*100) if taken else 0
-    passed = sum(1 for m in all_m if st.session_state[f"m{m}_qd"] and st.session_state[f"m{m}_qr"]>=4)
+    passed = sum(1 for i in ["1","2","3","4"] if st.session_state[f"c{i}_done"] and st.session_state[f"c{i}_score"]>=4)
     unlk   = len(st.session_state.unlocked)
 
     st.markdown(f"""
-    <div class="stats">
-        <div class="stat">
-            <div class="stat-n" style="color:#1a73e8;">{unlk}/4</div>
-            <div class="stat-l">Classes Unlocked</div>
-        </div>
-        <div class="stat">
-            <div class="stat-n" style="color:#1e8e3e;">{passed}/4</div>
-            <div class="stat-l">Assessments Passed</div>
-        </div>
-        <div class="stat">
-            <div class="stat-n" style="color:#b06000;">{avg:.0f}%</div>
-            <div class="stat-l">Mean Accuracy</div>
-        </div>
-        <div class="stat">
-            <div class="stat-n" style="color:#d93025;">{int(passed/4*100)}%</div>
-            <div class="stat-l">Overall Progress</div>
-        </div>
+    <div class="hero u0">
+      <div class="hero-greeting">Good day, Danilo.</div>
+      <div class="hero-sub">You have {len(COURSES) - unlk} course{"s" if len(COURSES)-unlk!=1 else ""} left to unlock. Keep going.</div>
     </div>
+
+    <div class="stats u1">
+      <div class="stat">
+        <div class="stat-n" style="color:#0071e3;">{unlk}/4</div>
+        <div class="stat-l">Unlocked</div>
+        <div class="stat-bar"><div class="stat-fill" style="width:{unlk/4*100:.0f}%;background:#0071e3;"></div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" style="color:#34c759;">{passed}/4</div>
+        <div class="stat-l">Passed</div>
+        <div class="stat-bar"><div class="stat-fill" style="width:{passed/4*100:.0f}%;background:#34c759;"></div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" style="color:#ff9500;">{avg:.0f}%</div>
+        <div class="stat-l">Accuracy</div>
+        <div class="stat-bar"><div class="stat-fill" style="width:{min(avg,100):.0f}%;background:#ff9500;"></div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" style="color:#5856d6;">{int(passed/4*100)}%</div>
+        <div class="stat-l">Progress</div>
+        <div class="stat-bar"><div class="stat-fill" style="width:{passed/4*100:.0f}%;background:#5856d6;"></div></div>
+      </div>
+    </div>
+
+    <div class="section-label u2">Courses</div>
+    <div class="cards-grid">
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="eyebrow anim-up d2">Enrolled Classes</div>', unsafe_allow_html=True)
+    # Card HTML in one block
+    cards_html = ""
+    for idx, (ck, course) in enumerate(COURSES.items()):
+        locked = ck not in st.session_state.unlocked
+        cid    = course["id"]
+        done   = st.session_state[f"c{cid}_done"] and st.session_state[f"c{cid}_score"] >= 4
+        bdg = (
+            '<span class="badge badge-done">✓ Complete</span>' if done
+            else '<span class="badge badge-lock">🔒 Locked</span>' if locked
+            else '<span class="badge badge-active">● Active</span>'
+        )
+        cards_html += f"""
+        <div class="ccard u{min(idx+2,7)}">
+          <div class="ccard-strip" style="background:{course['color']};"></div>
+          <div class="ccard-body">
+            <div class="ccard-title">{course['title']}</div>
+            <div class="ccard-sub">{course['sub']}</div>
+            <div class="ccard-meta">
+              <span style="color:var(--ink3);font-size:.75rem;">{course['teacher']} · {course['grade']}</span>
+              {bdg}
+            </div>
+          </div>
+        </div>"""
 
-    items = list(MODS.items())
+    st.markdown(cards_html + "</div>", unsafe_allow_html=True)
+
+    # Buttons — one per column, matching the grid
+    items = list(COURSES.items())
     for row in range(0, len(items), 3):
-        cols = st.columns(3, gap="medium")
-        for ci, (mk, mod) in enumerate(items[row:row+3]):
-            locked = mk not in st.session_state.unlocked
-            m = mod["k"]
-            done = st.session_state[f"m{m}_qd"] and st.session_state[f"m{m}_qr"] >= 4
-
-            badge = (
-                '<span class="chip chip-green">✓ Complete</span>' if done
-                else '<span class="chip chip-gray">🔒 Locked</span>' if locked
-                else '<span class="chip chip-blue">● Active</span>'
-            )
-            delay = f"d{min(row*3+ci+1,6)}"
-
+        cols = st.columns(3, gap="small")
+        for ci, (ck, course) in enumerate(items[row:row+3]):
+            locked = ck not in st.session_state.unlocked
             with cols[ci]:
-                st.markdown(f"""
-                <div class="ccard anim-up {delay}">
-                    <div class="ccard-head" style="background:{mod['hbg']};">
-                        <div class="ccard-dots"></div>
-                        <div class="ccard-ico">{mod['icon']}</div>
-                        <div class="ccard-title">{mod['label']}</div>
-                        <div class="ccard-section">{mod['section']}</div>
-                    </div>
-                    <div class="ccard-body">
-                        <div class="ccard-teacher">{mod['teacher']}</div>
-                        {badge}
-                    </div>
-                    <div class="ccard-foot">
-                        <span class="ccard-count">{len(mod['quiz'])} questions</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
                 st.button(
-                    "Open class →" if not locked else "Locked",
-                    key=f"h_{mk}", on_click=nav, args=(mk,),
+                    "Open →" if not locked else "Locked",
+                    key=f"h_{ck}", on_click=go, args=(ck,),
                     disabled=locked, use_container_width=True,
                 )
 
-# ════════════════════════════════════════════════════════════
-#  CLASS VIEW
-# ════════════════════════════════════════════════════════════
-elif st.session_state.view in MODS:
-    mk  = st.session_state.view
-    mod = MODS[mk]
-    m   = mod["k"]
-    qd  = mod["quiz"]
-    pm  = len(qd) - 1
 
-    st.button("← Back to Home", key=f"back_{mk}", on_click=nav, args=("home",))
-    st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
+# ══════════════════════════════════════════════
+#  COURSE VIEW
+# ══════════════════════════════════════════════
+elif v in COURSES:
+    course = COURSES[v]
+    cid    = course["id"]
+    qdata  = QUIZ[cid]
+    pm     = len(qdata) - 1
+    color  = course["color"]
 
-    # Stream banner
+    back_col, _ = st.columns([1, 6])
+    with back_col:
+        st.button("← Back", key=f"bk_{v}", on_click=go, args=("home",))
+    st.markdown('<div style="height:6px"></div>', unsafe_allow_html=True)
+
+    # Header banner
     st.markdown(f"""
-    <div class="stream-banner" style="background:{mod['hbg']};">
-        <div class="stream-banner-dots"></div>
-        <div class="stream-title">{mod['icon']}  {mod['label']}</div>
-        <div class="stream-sub">{mod['section']}  ·  {mod['teacher']}</div>
+    <div class="class-header" style="background:{color};">
+      <div class="class-header-content">
+        <div class="ch-label">{course['grade']} · {course['teacher']}</div>
+        <div class="ch-title">{course['title']}</div>
+        <div class="ch-sub">{course['sub']}</div>
+        <div class="ch-chips">
+          <span class="wchip">📖 {len(course['lessons'])} lessons</span>
+          <span class="wchip">📋 {len(qdata)} questions</span>
+          <span class="wchip">⏱ ~15 min</span>
+          <span class="wchip">Pass: {pm}/{len(qdata)}</span>
+        </div>
+      </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Tabs
-    st.markdown("""
-    <div class="tabs">
-        <div class="tab">Stream</div>
-        <div class="tab active">Classwork</div>
-        <div class="tab">People</div>
-    </div>
+    # Two-column layout
+    st.markdown('<div class="classwork">', unsafe_allow_html=True)
+    left_html = '<div>'
+
+    # — Lessons (left) —
+    left_html += '<div class="section-label">Lesson Material</div>'
+    ico_bg_pairs = [
+        ("rgba(0,113,227,.1)","#0071e3"),
+        ("rgba(52,199,89,.1)","#248a3d"),
+        ("rgba(255,149,0,.12)","#b86000"),
+        ("rgba(88,86,214,.1)","#5856d6"),
+    ]
+    for i, (title, body) in enumerate(course["lessons"]):
+        ibg, itc = ico_bg_pairs[i % len(ico_bg_pairs)]
+        num = ["①","②","③","④"][i % 4]
+        left_html += f"""
+        <div class="lesson u{i+1}">
+          <div class="lesson-head">
+            <div class="lesson-ico" style="background:{ibg};color:{itc};">{num}</div>
+            <div>
+              <div class="lesson-title">{title}</div>
+              <div class="lesson-tag">Reading · {course['teacher']}</div>
+            </div>
+          </div>
+          <div class="lesson-body"><p>{body}</p></div>
+        </div>"""
+
+    left_html += '</div>'
+    st.markdown(left_html, unsafe_allow_html=True)
+
+    # — Quiz panel (right) —
+    sk = f"{v}_started"; uk = f"{v}_done"; ck = f"{v}_score"
+
+    st.markdown(f"""
+    <div class="qpanel u0">
+      <div class="qpanel-top">
+        <div class="qpanel-ico">📋</div>
+        <div>
+          <div class="qpanel-title">Assessment</div>
+          <div class="qpanel-sub">{len(qdata)} questions · {pm}/{len(qdata)} to pass · Unlimited retries</div>
+        </div>
+      </div>
+      <div class="qpanel-body">
     """, unsafe_allow_html=True)
 
-    # Two-col layout
-    left, right = st.columns([3, 2], gap="large")
+    if not st.session_state[sk]:
+        st.markdown('</div></div>', unsafe_allow_html=True)
+        st.button("▶  Begin Assessment", key=f"begin_{v}")
+        if st.session_state.get(f"begin_{v}"):
+            st.session_state[sk] = True
+            st.rerun()
+    else:
+        st.markdown('</div></div>', unsafe_allow_html=True)
+        with st.form(key=f"f_{v}", clear_on_submit=False):
+            answers = []
+            for i, q in enumerate(qdata):
+                st.markdown(f'<div class="qlabel">Q{i+1} of {len(qdata)}</div>', unsafe_allow_html=True)
+                st.markdown(f"**{q['q']}**")
+                a = st.radio("", q["o"], key=f"{v}_q{i}", label_visibility="collapsed", index=None)
+                answers.append(a)
+                if i < len(qdata)-1:
+                    st.markdown('<hr class="qdivider">', unsafe_allow_html=True)
+            st.markdown('<div style="height:4px"></div>', unsafe_allow_html=True)
+            sub = st.form_submit_button("Submit Assessment")
 
-    with left:
-        st.markdown('<div class="eyebrow">Lesson Material</div>', unsafe_allow_html=True)
-        for i, (ico, ibg, itc, title, body) in enumerate(mod["topics"]):
+        if sub:
+            if None in answers:
+                st.error("Please answer every question before submitting.")
+            else:
+                sc = sum(1 for i,q in enumerate(qdata) if answers[i]==q["a"])
+                st.session_state[ck] = sc
+                st.session_state[uk] = True
+
+        if st.session_state[uk]:
+            sc = st.session_state[ck]
+            ok = sc >= pm
+            pct = int(sc/len(qdata)*100)
+            cls = "res-pass" if ok else "res-fail"
+            tag = "Passed" if ok else "Below pass mark"
+            nxt = course.get("next")
+            unlock_line = ""
+            if ok and nxt and nxt not in st.session_state.unlocked:
+                st.session_state.unlocked.add(nxt)
+            if ok and nxt:
+                unlock_line = f'<span style="color:#248a3d;font-weight:600;font-size:.8125rem;display:block;margin-top:6px;">{COURSES[nxt]["title"]} is now unlocked.</span>'
+            elif ok and not nxt:
+                unlock_line = '<span style="color:#248a3d;font-weight:600;font-size:.8125rem;display:block;margin-top:6px;">You have completed all courses! 🎉</span>'
             st.markdown(f"""
-            <div class="lesson-card {f'd{i+1}'}">
-                <div class="lc-head">
-                    <div class="lc-ico" style="background:{ibg};">{ico}</div>
-                    <div>
-                        <div class="lc-title">{title}</div>
-                        <div class="lc-sub">Reading material · {mod['teacher']}</div>
-                    </div>
-                </div>
-                <div class="lc-body"><p>{body}</p></div>
+            <div class="res {cls} pop">
+              <div>
+                <div class="res-score">{sc}/{len(qdata)}</div>
+                <div class="res-tag">{"✓ " if ok else "✗ "}{tag}</div>
+              </div>
+              <div class="res-msg">
+                <b>{"Outstanding." if ok else "Keep going."}</b>
+                {"You scored "+str(pct)+"% and have demonstrated mastery of this topic." if ok else "You scored "+str(pct)+"%. Review the lessons and retry."}
+                {unlock_line}
+              </div>
             </div>
             """, unsafe_allow_html=True)
+            if not ok:
+                if st.button("🔄  Retry", key=f"retry_{v}"):
+                    st.session_state[uk] = False
+                    st.rerun()
 
-    with right:
-        st.markdown('<div class="eyebrow">Assessment</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)  # close .classwork
 
-        sk = f"m{m}_qs"
-        uk = f"m{m}_qd"
-        ck = f"m{m}_qr"
 
-        st.markdown(f"""
-        <div class="quiz-panel">
-            <div class="quiz-panel-head">
-                <div class="quiz-panel-ico">📋</div>
-                <div>
-                    <p class="quiz-panel-title">Formative Assessment</p>
-                    <p class="quiz-panel-sub">{len(qd)} questions · Pass: {pm}/{len(qd)} · Unlimited retries</p>
-                </div>
-            </div>
-            <div class="quiz-panel-body">
-        """, unsafe_allow_html=True)
-
-        if not st.session_state[sk]:
-            st.markdown('</div></div>', unsafe_allow_html=True)
-            st.button("▶  Start Assessment", key=f"st_{mk}")
-            if st.session_state.get(f"st_{mk}"):
-                st.session_state[sk] = True
-                st.rerun()
-        else:
-            st.markdown('</div></div>', unsafe_allow_html=True)
-            with st.form(key=f"{mk}_form", clear_on_submit=False):
-                answers = []
-                for i, q in enumerate(qd):
-                    st.markdown(f'<div class="q-label">Question {i+1} of {len(qd)}</div>', unsafe_allow_html=True)
-                    st.markdown(f"**{q['q']}**")
-                    a = st.radio("", q["o"], key=f"{mk}_q{i}", label_visibility="collapsed", index=None)
-                    answers.append(a)
-                    if i < len(qd) - 1:
-                        st.markdown('<hr class="qdiv">', unsafe_allow_html=True)
-                st.markdown('<div style="height:6px"></div>', unsafe_allow_html=True)
-                submitted = st.form_submit_button("Submit Assessment")
-
-            if submitted:
-                if None in answers:
-                    st.error("⚠️ Please answer all questions before submitting.")
-                else:
-                    score = sum(1 for i, q in enumerate(qd) if answers[i] == q["a"])
-                    st.session_state[ck] = score
-                    st.session_state[uk] = True
-
-            if st.session_state[uk]:
-                score  = st.session_state[ck]
-                passed = score >= pm
-                pct    = int(score / len(qd) * 100)
-
-                if passed:
-                    st.markdown(f"""
-                    <div class="result-pass">
-                        <div>
-                            <div class="result-score">{score}/{len(qd)}</div>
-                            <div class="result-badge">✓ Passed</div>
-                        </div>
-                        <div class="result-msg">
-                            <strong>Excellent work!</strong> You scored {pct}% and have demonstrated solid mastery of this topic.<br>
-                            <span style="color:#1e8e3e;font-weight:600;margin-top:6px;display:block;">{mod['umsg']}</span>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    nxt = mod.get("next")
-                    if nxt and nxt not in st.session_state.unlocked:
-                        st.session_state.unlocked.append(nxt)
-                else:
-                    st.markdown(f"""
-                    <div class="result-fail">
-                        <div>
-                            <div class="result-score">{score}/{len(qd)}</div>
-                            <div class="result-badge">✗ Below Pass</div>
-                        </div>
-                        <div class="result-msg">
-                            <strong>Keep going!</strong> You scored {pct}%. Review the lesson cards and try again. You need {pm}/{len(qd)} to pass.
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    if st.button("🔄  Retry Assessment", key=f"rt_{mk}"):
-                        st.session_state[uk] = False
-                        st.rerun()
-
-# ════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════
 #  GRADES
-# ════════════════════════════════════════════════════════════
-elif st.session_state.view == "grades":
-    st.button("← Back to Home", key="back_g", on_click=nav, args=("home",))
-    st.markdown('<div style="height:8px"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="page-title anim-up">Grades</div>', unsafe_allow_html=True)
+# ══════════════════════════════════════════════
+elif v == "grades":
+    back_col, _ = st.columns([1,6])
+    with back_col:
+        st.button("← Back", key="bk_g", on_click=go, args=("home",))
+    st.markdown('<div style="height:6px"></div>', unsafe_allow_html=True)
 
-    all_m  = ["1","2","3","4"]
-    subs   = {m: st.session_state[f"m{m}_qd"] for m in all_m}
-    scores = {m: st.session_state[f"m{m}_qr"] for m in all_m}
-    taken  = [scores[m] for m in all_m if subs[m]]
+    ids    = ["1","2","3","4"]
+    subs   = {i: st.session_state[f"c{i}_done"]  for i in ids}
+    scores = {i: st.session_state[f"c{i}_score"] for i in ids}
+    taken  = [scores[i] for i in ids if subs[i]]
     avg    = (sum(taken)/(len(taken)*5)*100) if taken else 0
-    comp   = sum(1 for m in all_m if subs[m] and scores[m]>=4)
+    comp   = sum(1 for i in ids if subs[i] and scores[i]>=4)
     unlk   = len(st.session_state.unlocked)
 
     st.markdown(f"""
-    <div class="stats anim-up d1">
-        <div class="stat">
-            <div class="stat-n" style="color:#1a73e8;">{unlk}/4</div>
-            <div class="stat-l">Unlocked</div>
-        </div>
-        <div class="stat">
-            <div class="stat-n" style="color:#1e8e3e;">{avg:.0f}%</div>
-            <div class="stat-l">Mean Accuracy</div>
-        </div>
-        <div class="stat">
-            <div class="stat-n" style="color:#b06000;">{comp}/4</div>
-            <div class="stat-l">Passed</div>
-        </div>
-        <div class="stat">
-            <div class="stat-n" style="color:#d93025;">{int(comp/4*100)}%</div>
-            <div class="stat-l">Progress</div>
-        </div>
+    <div class="stats u0">
+      <div class="stat">
+        <div class="stat-n" style="color:#0071e3;">{unlk}/4</div>
+        <div class="stat-l">Unlocked</div>
+        <div class="stat-bar"><div class="stat-fill" style="width:{unlk/4*100:.0f}%;background:#0071e3;"></div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" style="color:#34c759;">{avg:.0f}%</div>
+        <div class="stat-l">Accuracy</div>
+        <div class="stat-bar"><div class="stat-fill" style="width:{min(avg,100):.0f}%;background:#34c759;"></div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" style="color:#ff9500;">{comp}/4</div>
+        <div class="stat-l">Passed</div>
+        <div class="stat-bar"><div class="stat-fill" style="width:{comp/4*100:.0f}%;background:#ff9500;"></div></div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" style="color:#5856d6;">{int(comp/4*100)}%</div>
+        <div class="stat-l">Progress</div>
+        <div class="stat-bar"><div class="stat-fill" style="width:{comp/4*100:.0f}%;background:#5856d6;"></div></div>
+      </div>
     </div>
+    <div class="section-label u1" style="margin-top:24px;">Gradebook</div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="eyebrow anim-up d2">Gradebook</div>', unsafe_allow_html=True)
-
     rows = ""
-    for mk, mod in MODS.items():
-        m     = mod["k"]
-        total = len(mod["quiz"])
-        locked = mk not in st.session_state.unlocked
-        sub    = subs[m]; sc = scores[m]; done = sub and sc >= 4
+    for ck, course in COURSES.items():
+        cid   = course["id"]
+        total = len(QUIZ[cid])
+        locked= ck not in st.session_state.unlocked
+        sub   = subs[cid]; sc = scores[cid]; done = sub and sc >= 4
 
         if locked:
-            sh = '<span class="chip chip-gray">🔒 Locked</span>'
-            sd = gd = '<span style="color:#bdc1c6;">—</span>'
+            sh = '<span class="badge badge-lock">🔒 Locked</span>'
+            sd = gd = '<span style="color:var(--ink3)">—</span>'
         elif done:
-            sh = '<span class="chip chip-green">✓ Passed</span>'
-            sd = f'<span class="gmono" style="color:#1e8e3e;">{sc}/{total}</span>'
-            gd = f'<span class="gmono" style="color:#1e8e3e;">{int(sc/total*100)}%</span>'
+            sh = '<span class="badge badge-done">✓ Passed</span>'
+            sd = f'<span class="gm" style="color:#248a3d;">{sc}/{total}</span>'
+            gd = f'<span class="gm" style="color:#248a3d;">{int(sc/total*100)}%</span>'
         elif sub:
-            sh = '<span class="chip chip-red">✗ Below Pass</span>'
-            sd = f'<span class="gmono" style="color:#d93025;">{sc}/{total}</span>'
-            gd = f'<span class="gmono" style="color:#d93025;">{int(sc/total*100)}%</span>'
+            sh = '<span class="badge" style="background:rgba(255,59,48,.1);color:#c91e14;">✗ Below Pass</span>'
+            sd = f'<span class="gm" style="color:#c91e14;">{sc}/{total}</span>'
+            gd = f'<span class="gm" style="color:#c91e14;">{int(sc/total*100)}%</span>'
         else:
-            sh = '<span class="chip chip-yellow">○ Not Attempted</span>'
-            sd = gd = '<span style="color:#bdc1c6;">—</span>'
+            sh = '<span class="badge badge-lock">○ Not started</span>'
+            sd = gd = '<span style="color:var(--ink3)">—</span>'
 
-        rows += f"""
-        <tr>
-            <td style="width:34px;font-size:1.1rem;">{mod['icon']}</td>
-            <td style="font-weight:600;">{mod['label']}</td>
-            <td style="color:#5f6368;font-size:.8rem;">{mod['section']}</td>
-            <td style="color:#5f6368;font-size:.8rem;">{mod['teacher']}</td>
-            <td>{sh}</td>
-            <td>{sd}</td>
-            <td>{gd}</td>
+        rows += f"""<tr>
+          <td>
+            <div style="width:10px;height:10px;border-radius:50%;background:{course['color']};display:inline-block;margin-right:8px;"></div>
+            <b>{course['title']}</b>
+          </td>
+          <td style="color:var(--ink2);font-size:.8125rem;">{course['sub']}</td>
+          <td style="color:var(--ink2);font-size:.8125rem;">{course['teacher']}</td>
+          <td>{sh}</td><td>{sd}</td><td>{gd}</td>
         </tr>"""
 
     st.markdown(f"""
-    <table class="gtable">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Class</th>
-                <th>Topic</th>
-                <th>Teacher</th>
-                <th>Status</th>
-                <th>Score</th>
-                <th>Grade</th>
-            </tr>
-        </thead>
-        <tbody>{rows}</tbody>
+    <table class="gtable u2">
+      <thead><tr>
+        <th>Course</th><th>Topic</th><th>Teacher</th>
+        <th>Status</th><th>Score</th><th>Grade</th>
+      </tr></thead>
+      <tbody>{rows}</tbody>
     </table>
     """, unsafe_allow_html=True)
 
