@@ -1955,7 +1955,8 @@ def admin_permanent_delete_user(user_id: int, current_user: User = Depends(get_c
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     db.execute(text("DELETE FROM ai_conversations WHERE student_id = :uid"), {"uid": user_id})
-    db.execute(text("DELETE FROM grade_entries WHERE student_id = :uid OR recorded_by = :uid"), {"uid": user_id})
+    db.execute(text("DELETE FROM grade_entries WHERE student_id = :uid"), {"uid": user_id})
+    db.execute(text("UPDATE grade_entries SET recorded_by = :admin_id WHERE recorded_by = :uid"), {"admin_id": current_user.id, "uid": user_id})
     db.execute(text("DELETE FROM submissions WHERE student_id = :uid"), {"uid": user_id})
     db.execute(text("DELETE FROM quiz_attempts WHERE student_id = :uid"), {"uid": user_id})
     db.execute(text("DELETE FROM enrollments WHERE student_id = :uid"), {"uid": user_id})
