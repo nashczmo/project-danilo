@@ -156,9 +156,10 @@ services:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
+      interval: 5s
+      timeout: 3s
+      retries: 15
+      start_period: 10s
 
   backend:
     build:
@@ -171,9 +172,10 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')\""]
-      interval: 20s
+      interval: 10s
       timeout: 5s
-      retries: 12
+      retries: 15
+      start_period: 15s
 
   ollama:
     image: ollama/ollama:latest
@@ -186,9 +188,10 @@ services:
       - ollama_data:/root/.ollama
     healthcheck:
       test: ["CMD", "ollama", "list"]
-      interval: 20s
+      interval: 15s
       timeout: 10s
-      retries: 18
+      retries: 12
+      start_period: 20s
 
   gateway:
     build:
@@ -224,7 +227,7 @@ write_project_docs() {
   cat > "${APP_ROOT}/.env.example" <<'EOF'
 # Project DANILO local/deployment configuration
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD=nacjan@danilo.edu
+ADMIN_PASSWORD=ProjectDANILO2026!
 SECRET_KEY=change-me
 JWT_SECRET=change-me
 DATABASE_URL=
