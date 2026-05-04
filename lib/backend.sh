@@ -732,7 +732,12 @@ from .seed import seed_defaults
 from .security import create_access_token, decode_access_token, hash_password, verify_password
 from .student_insights import analyze_student_performance
 
-logger = logging.getLogger("danilo.auth")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger("danilo")
 
 JWT_SECRET = os.getenv("JWT_SECRET") or os.getenv("SECRET_KEY")
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "720"))
@@ -883,6 +888,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc):
+    from fastapi.responses import JSONResponse
+    logger.warning("HTTP %s on %s: %s", exc.status_code, request.url.path, exc.detail)
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail, "status": exc.status_code})
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request, exc):
+    from fastapi.responses import JSONResponse
+    logger.exception("Unhandled error on %s: %s", request.url.path, str(exc))
+    return JSONResponse(status_code=500, content={"detail": "Internal server error", "status": 500})
 
 
 def get_current_user(

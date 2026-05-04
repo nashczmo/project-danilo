@@ -91,8 +91,39 @@ detect_wifi_roles() {
   fi
 
   if [[ -z "${AP_WIFI_IFACE}" ]]; then
-    echo "Unable to detect a Wi-Fi interface for the DANILO access point."
-    exit 1
+    warn "No Wi-Fi interface detected on first attempt. Retrying after 5 seconds..."
+    sleep 5
+    detect_wifi_roles_inner
+    if [[ -z "${AP_WIFI_IFACE}" ]]; then
+      fail "Unable to detect a Wi-Fi interface for the DANILO access point."
+      echo ""
+      echo "Troubleshooting:"
+      echo "  1. Ensure a USB Wi-Fi adapter is plugged in"
+      echo "  2. Run 'lsusb' to confirm it is recognized"
+      echo "  3. Run 'iw dev' to list Wi-Fi interfaces"
+      echo "  4. Override manually: DANILO_WIFI_IFACE=wlan0 sudo bash danilo.sh --install"
+      exit 1
+    fi
+  fi
+}
+
+detect_wifi_roles_inner() {
+  local iface=""
+  local bus=""
+  local first_wifi=""
+
+  while read -r iface; do
+    [[ -z "${iface}" ]] && continue
+    [[ -z "${first_wifi}" ]] && first_wifi="${iface}"
+    bus="$(interface_bus_type "${iface}")"
+    if [[ -z "${AP_WIFI_IFACE}" ]]; then
+      if [[ "${iface}" =~ ^wlx ]] || [[ "${bus}" == "usb" ]]; then
+        AP_WIFI_IFACE="${iface}"
+      fi
+    fi
+  done < <(list_wifi_interfaces)
+  if [[ -z "${AP_WIFI_IFACE}" ]]; then
+    AP_WIFI_IFACE="${first_wifi:-}"
   fi
 }
 
