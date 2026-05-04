@@ -262,7 +262,7 @@ Project DANILO is an offline-first DepEd school portal packaged with FastAPI, Re
 The backend creates or repairs the first administrator during startup:
 
 - Username: `admin`
-- Password: `nacjan@danilo.edu`
+- Password: `ProjectDANILO2026!`
 - Role: `admin`
 
 Passwords are stored only as bcrypt hashes in `users.password_hash`. The plaintext password is read from local environment configuration and is printed only in the final installer summary.
