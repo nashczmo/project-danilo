@@ -14,7 +14,7 @@
 
 ## Admin Workflow
 
-- Log in as `admin` / `nacjan@danilo.edu`.
+- Log in as `admin` / `ProjectDANILO2026!`.
 - Create teacher and student users; leave username blank to auto-generate one.
 - Edit and deactivate a test user.
 - Create a class using DepEd education level, grade level, subject, quarter, and SHS strand where applicable.

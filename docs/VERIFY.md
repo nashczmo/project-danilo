@@ -15,7 +15,7 @@ The deployment verifier checks:
 - PostgreSQL readiness
 - Ollama reachability and active model loading
 - `danilo.local` name resolution
-- Admin login using `admin` / `nacjan@danilo.edu`
+- Admin login using `admin` / `ProjectDANILO2026!`
 
 Repository-side preflight before copying to Ubuntu:
 
@@ -33,7 +33,7 @@ The verifier checks:
 - Postgres database readiness.
 - Ollama connection and active model loading.
 - `danilo.local` local name resolution.
-- Admin login endpoint using `admin` / `nacjan@danilo.edu`.
+- Admin login endpoint using `admin` / `ProjectDANILO2026!`.
 - Admin overview route access.
 
 Expected result:

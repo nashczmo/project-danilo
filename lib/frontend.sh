@@ -1793,7 +1793,7 @@ export function TeacherAnnouncementsView({ token, courses, reload }) {
 EOF
 
   cat > "${APP_ROOT}/frontend/src/App.jsx" <<'EOF'
-import { startTransition, useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { startTransition, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
 import { apiRequest, apiUpload } from "./api";
 import { AdminAssignmentsView, AdminAnnouncementsView, AdminClassesView, AdminEnrollmentsView, AdminUsersView, ReportsView, SystemView, TeacherAnnouncementsView } from "./components/AdminPages";
@@ -1830,10 +1830,10 @@ function matchRoute(path) {
   if (classBase) return { page: "class-detail", classId: Number(classBase[1]), tab: "stream" };
   const routes = {
     "/": "overview", "/overview": "overview", "/my-classes": "my-classes",
-    "/users": "users", "/classes": "classes", "/enrollments": "enrollments",
-    "/assignments": "assignments", "/grades": "grades", "/reports": "reports",
-    "/settings": "settings", "/system": "system", "/ai-tutor": "ai-tutor",
-    "/announcements": "announcements",
+    "/users": "users", "/classes": "classes", "/sections": "sections",
+    "/enrollments": "enrollments", "/assignments": "assignments",
+    "/grades": "grades", "/reports": "reports", "/settings": "settings",
+    "/system": "system", "/ai-tutor": "ai-tutor", "/announcements": "announcements",
   };
   return { page: routes[p] || "not-found" };
 }
@@ -1906,7 +1906,7 @@ const NAV = {
 const getNav = (role) => NAV[role] || NAV.student;
 
 const ALLOWED = {
-  admin:   ["overview", "users", "classes", "enrollments", "assignments", "grades", "reports", "settings", "system", "ai-tutor", "my-classes", "announcements", "class-detail", "not-found"],
+  admin:   ["overview", "users", "classes", "sections", "enrollments", "assignments", "grades", "reports", "settings", "system", "ai-tutor", "my-classes", "announcements", "class-detail", "not-found"],
   teacher: ["overview", "my-classes", "grades", "announcements", "ai-tutor", "class-detail", "not-found"],
   student: ["overview", "my-classes", "grades", "ai-tutor", "class-detail", "not-found"],
 };
@@ -2569,6 +2569,56 @@ function NotFoundView({ navigate }) {
    MAIN APP
    ======================================================================== */
 
+/* ========================================================================
+   TOAST NOTIFICATION SYSTEM
+   ======================================================================== */
+
+function ToastContainer({ toasts, onDismiss }) {
+  if (!toasts.length) return null;
+  return (
+    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 max-w-sm" role="alert" aria-live="polite">
+      {toasts.map((t) => (
+        <div key={t.id}
+          className={`flex items-start gap-3 px-4 py-3 rounded-xl shadow-lg border animate-fade-in text-sm ${
+            t.type === "success" ? "bg-success-50 border-success-200 text-success-800" :
+            t.type === "error"   ? "bg-red-50 border-red-200 text-red-800" :
+            "bg-primary-50 border-primary-200 text-primary-800"
+          }`}>
+          <span className="flex-1">{t.message}</span>
+          <button type="button" onClick={() => onDismiss(t.id)} className="text-slate-400 hover:text-slate-600 text-lg leading-none">&times;</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
+/* ========================================================================
+   CONFIRMATION DIALOG
+   ======================================================================== */
+
+function ConfirmDialog({ open, title, message, onConfirm, onCancel, confirmLabel, variant }) {
+  if (!open) return null;
+  const isDestructive = variant === "danger";
+  return (
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
+      <button type="button" className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" onClick={onCancel} aria-label="Cancel" />
+      <div className="relative bg-white rounded-2xl shadow-xl border border-slate-200 p-6 w-full max-w-sm animate-fade-in">
+        <h3 className="text-base font-semibold text-slate-900 mb-2">{title}</h3>
+        <p className="text-sm text-slate-500 mb-5 leading-relaxed">{message}</p>
+        <div className="flex items-center justify-end gap-2">
+          <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition">Cancel</button>
+          <button type="button" onClick={onConfirm}
+            className={`px-4 py-2 text-sm font-medium rounded-lg text-white transition ${isDestructive ? "bg-red-600 hover:bg-red-700" : "bg-primary-600 hover:bg-primary-700"}`}>
+            {confirmLabel || "Confirm"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 export default function App() {
   const [path, navigate] = usePath();
   const [token, setToken]               = useState(() => localStorage.getItem("danilo.token") || "");
@@ -2590,6 +2640,21 @@ export default function App() {
   const [tutorLoading, setTutorLoading] = useState(false);
   const [tutorMessages, setTutorMessages] = useState([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [toasts, setToasts] = useState([]);
+  const [confirmState, setConfirmState] = useState({ open: false, title: "", message: "", onConfirm: null, confirmLabel: "Confirm", variant: "default" });
+
+  const addToast = useCallback((message, type = "info") => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev.slice(-4), { id, message, type }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4500);
+  }, []);
+
+  const dismissToast = useCallback((id) => setToasts((prev) => prev.filter((t) => t.id !== id)), []);
+
+  const confirm = useCallback((title, message, onConfirm, opts = {}) => {
+    setConfirmState({ open: true, title, message, onConfirm, confirmLabel: opts.confirmLabel || "Confirm", variant: opts.variant || "default" });
+  }, []);
+  const closeConfirm = useCallback(() => setConfirmState((c) => ({ ...c, open: false })), []);
 
   const deferredSearch = useDeferredValue(search);
   const route = useMemo(() => matchRoute(path), [path]);
@@ -2730,11 +2795,13 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("danilo.token");
-    setToken(""); setUser(null); setDashboard(null); setDashboardError("");
-    setAdminUsers([]); setAdminCourses([]); setAdminAssignments([]);
-    setTutorMessages([]);
-    navigate("/");
+    confirm("Sign Out", "Are you sure you want to sign out of DANILO?", () => {
+      localStorage.removeItem("danilo.token");
+      setToken(""); setUser(null); setDashboard(null); setDashboardError("");
+      setAdminUsers([]); setAdminCourses([]); setAdminAssignments([]);
+      setTutorMessages([]);
+      navigate("/");
+    }, { confirmLabel: "Sign Out", variant: "danger" });
   };
 
   const handleTutorSubmit = async (e) => {
@@ -2892,6 +2959,16 @@ export default function App() {
       </main>
 
       <MobileBottomNav currentPage={page} navigate={navigate} role={user.role} />
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+      <ConfirmDialog
+        open={confirmState.open}
+        title={confirmState.title}
+        message={confirmState.message}
+        onConfirm={() => { closeConfirm(); confirmState.onConfirm && confirmState.onConfirm(); }}
+        onCancel={closeConfirm}
+        confirmLabel={confirmState.confirmLabel}
+        variant={confirmState.variant}
+      />
     </div>
   );
 }

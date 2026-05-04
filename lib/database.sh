@@ -5,7 +5,7 @@ generate_secrets() {
 
   PORTAL_DOMAIN="${DANILO_PORTAL_DOMAIN:-${PORTAL_DOMAIN:-danilo.local}}"
   SSID="${DANILO_SSID:-${SSID:-PROJECT-DANILO}}"
-  WIFI_PASSPHRASE="PDanilo2026!"
+  WIFI_PASSPHRASE="${DANILO_WIFI_PASSPHRASE:-${WIFI_PASSPHRASE:-ProjectDANILO2026!}}"
   OLLAMA_MODEL="${DANILO_OLLAMA_MODEL:-${OLLAMA_MODEL:-qwen2.5:1.5b-instruct-q4_K_M}}"
   POSTGRES_DB="${DANILO_POSTGRES_DB:-${POSTGRES_DB:-danilo}}"
   POSTGRES_USER="${DANILO_POSTGRES_USER:-${POSTGRES_USER:-danilo}}"
@@ -26,7 +26,7 @@ generate_secrets() {
   [[ -z "${JWT_SECRET:-}" ]] && JWT_SECRET="$(openssl rand -hex 32 | tr -d '\r\n')"
   [[ -z "${POSTGRES_PASSWORD:-}" ]] && POSTGRES_PASSWORD="$(openssl rand -hex 24 | tr -d '\r\n')"
   [[ -z "${ADMIN_USERNAME:-}" ]] && ADMIN_USERNAME="admin"
-  [[ -z "${ADMIN_PASSWORD:-}" ]] && ADMIN_PASSWORD="nacjan@danilo.edu"
+  [[ -z "${ADMIN_PASSWORD:-}" ]] && ADMIN_PASSWORD="ProjectDANILO2026!"
   if [[ -z "${DATABASE_URL:-}" ]]; then
     DATABASE_URL="postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}"
   fi

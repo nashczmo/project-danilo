@@ -169,6 +169,32 @@ run_logged_function() {
   ok "Finished ${label}"
 }
 
+retry_step_command() {
+  local max_attempts="${1:-3}"
+  local delay="${2:-5}"
+  local description="$3"
+  shift 3
+  local attempt=1
+  local exit_code=0
+
+  while (( attempt <= max_attempts )); do
+    note "${description} (attempt ${attempt}/${max_attempts})"
+    if "$@"; then
+      ok "${description}"
+      return 0
+    fi
+    exit_code=$?
+    if (( attempt < max_attempts )); then
+      warn "${description} failed (exit ${exit_code}), retrying in ${delay}s..."
+      sleep "${delay}"
+    fi
+    (( attempt++ ))
+  done
+
+  fail "${description} failed after ${max_attempts} attempts (exit ${exit_code})"
+  return "${exit_code}"
+}
+
 print_failure() {
   local exit_code="$1"
   local line_number="${2:-unknown}"

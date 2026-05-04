@@ -18,7 +18,7 @@ curl -fsS \
   -H "Host: danilo.local" \
   -H "Content-Type: application/json" \
   -X POST http://127.0.0.1/api/auth/login \
-  -d '{"username":"admin","password":"nacjan@danilo.edu"}'
+  -d '{"username":"admin","password":"ProjectDANILO2026!"}'
 ```
 
 The response must include `accessToken` and a user with role `admin`.

@@ -263,11 +263,11 @@ verify_database_schema() {
   fi
 
   table_count="$(docker compose -f "${APP_ROOT}/docker-compose.yml" -p "${STACK_NAME}" exec -T postgres \
-    psql -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" -Atc "select count(*) from information_schema.tables where table_schema='public' and table_name in ('users','courses','modules','assignments','enrollments','grade_entries','audit_logs','ai_conversations');" 2>/dev/null || true)"
-  if [[ "${table_count}" == "8" ]]; then
+    psql -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" -Atc "select count(*) from information_schema.tables where table_schema='public' and table_name in ('users','courses','modules','assignments','enrollments','grade_entries','audit_logs','ai_conversations','sections');" 2>/dev/null || true)"
+  if [[ "${table_count}" == "9" ]]; then
     verify_pass "Database schema is migrated"
   else
-    verify_fail "Database schema is migrated (${table_count:-0}/8 expected tables)"
+    verify_fail "Database schema is migrated (${table_count:-0}/9 expected tables)"
   fi
 }
 
@@ -328,11 +328,35 @@ verify_mode() {
 
   verify_admin_login
 
+  if [[ -f "${RUNTIME_ROOT}/wifi_iface" ]]; then
+    local wifi_iface
+    wifi_iface="$(cat "${RUNTIME_ROOT}/wifi_iface" 2>/dev/null || true)"
+    if [[ -n "${wifi_iface}" ]] && ip link show "${wifi_iface}" >/dev/null 2>&1; then
+      verify_pass "Wi-Fi interface ${wifi_iface} is present"
+    else
+      verify_fail "Wi-Fi interface ${wifi_iface:-unknown} is not available"
+    fi
+  else
+    verify_fail "Wi-Fi interface not configured (missing ${RUNTIME_ROOT}/wifi_iface)"
+  fi
+
+  if systemctl is-active --quiet danilo-ap.service 2>/dev/null; then
+    verify_pass "Access point service (danilo-ap) is active"
+  else
+    verify_fail "Access point service (danilo-ap) is not active"
+  fi
+
+  printf '\n%s\n' "$(rule)"
+  local pass_count fail_count
+  pass_count="$(grep -c '\[PASS\]' "${LOG_FILE}" 2>/dev/null || echo 0)"
+  fail_count="${VERIFY_FAILED}"
   if [[ "${VERIFY_FAILED}" -eq 0 ]]; then
+    printf '  %s%sRESULT: ALL CHECKS PASSED%s (%s checks)\n' "${BOLD}" "${GREEN}" "${RESET}" "${pass_count}"
     ok "Project DANILO verification passed"
     return 0
   fi
 
+  printf '  %s%sRESULT: SOME CHECKS FAILED%s\n' "${BOLD}" "${RED}" "${RESET}"
   fail "Project DANILO verification failed. See ${LOG_FILE} for details."
   return 1
 }

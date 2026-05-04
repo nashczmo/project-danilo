@@ -56,7 +56,7 @@ Default administrator:
 
 ```text
 username: admin
-password: nacjan@danilo.edu
+password: ProjectDANILO2026!
 ```
 
 After install:
