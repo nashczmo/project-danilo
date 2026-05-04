@@ -297,6 +297,25 @@ class GradeEntry(Base):
     recorder = relationship("User", foreign_keys=[recorded_by])
 
 
+class Section(Base):
+    __tablename__ = "sections"
+    __table_args__ = (
+        UniqueConstraint("name", "grade_level", "school_year", name="uq_section_name_grade_year"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(120), nullable=False)
+    grade_level = Column(String(50), nullable=False)
+    education_level = Column(String(40), nullable=False, default="Junior High School")
+    strand = Column(String(80), nullable=True)
+    school_year = Column(String(20), nullable=False, default="2026-2027")
+    adviser_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    adviser = relationship("User")
+
+
 class AIConversation(Base):
     __tablename__ = "ai_conversations"
 
@@ -707,7 +726,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from .database import Base, SessionLocal, engine, get_db
-from .models import AIConversation, Assignment, AuditLog, Course, Enrollment, GradeEntry, Module, Quiz, QuizAttempt, QuizQuestion, StreamPost, Submission, User
+from .models import AIConversation, Assignment, AuditLog, Course, Enrollment, GradeEntry, Module, Quiz, QuizAttempt, QuizQuestion, Section, StreamPost, Submission, User
 from .schemas import LoginRequest, TutorRequest
 from .seed import seed_defaults
 from .security import create_access_token, decode_access_token, hash_password, verify_password
@@ -1400,14 +1419,53 @@ def build_pdf_document(title: str, lines: list[str]) -> bytes:
 
 
 SYSTEM_PROMPT = (
-    "You are DANILO, an offline DepEd-aligned AI tutor. Explain clearly, simply, and accurately. "
-    "Use lesson context when available. Do not hallucinate."
+    "You are DANILO, an offline DepEd-aligned AI tutor for Filipino students in Grades 1-12. "
+    "Explain clearly, simply, and accurately. Use lesson context when available. Do not hallucinate.\n\n"
+    "SAFETY RULES (STRICTLY ENFORCED — users are under 18):\n"
+    "- Never produce violent, sexual, explicit, or age-inappropriate content.\n"
+    "- Never provide instructions for weapons, drugs, self-harm, or illegal activities.\n"
+    "- If a question is harmful, off-topic, or inappropriate, respond with a polite educational redirect.\n"
+    "- Keep all responses respectful, student-friendly, and focused on learning.\n"
+    "- When unsure, guide the student back to their lesson or subject.\n\n"
+    "TONE: Encouraging, clear, patient, and age-appropriate at all times."
 )
+SAFETY_KEYWORDS = {
+    "kill", "suicide", "bomb", "weapon", "drug", "sex", "porn", "nude", "hack",
+    "exploit", "violence", "murder", "abuse", "self-harm", "cutting", "anorexia",
+    "bulimia", "alcohol", "cigarette", "vape", "gambling", "bet", "nsfw",
+}
+SAFETY_REDIRECT = (
+    "I'm DANILO, your learning assistant. I can only help with school-related topics. "
+    "Let's focus on your lessons — what subject would you like help with?"
+)
+ROLLING_MEMORY_LIMIT = int(os.getenv("DANILO_ROLLING_MEMORY", "6"))
 RESPONSE_MODE_OPTIONS = {
     "short": {"num_predict": 120, "instruction": "Answer briefly in 1 to 2 short paragraphs."},
     "normal": {"num_predict": 280, "instruction": "Answer in 2 to 4 clear paragraphs with a student-friendly tone."},
     "detailed": {"num_predict": 600, "instruction": "Give a fuller ChatGPT-like explanation with steps and examples when helpful."},
 }
+
+
+def check_safety(question: str) -> bool:
+    words = set(question.lower().split())
+    return bool(words & SAFETY_KEYWORDS)
+
+
+def build_rolling_memory(db: Session, user_id: int, course_id: int | None, limit: int) -> list[dict]:
+    stmt = (
+        select(AIConversation)
+        .where(AIConversation.student_id == user_id)
+        .order_by(AIConversation.created_at.desc())
+        .limit(limit)
+    )
+    if course_id:
+        stmt = stmt.where(AIConversation.course_id == course_id)
+    rows = db.scalars(stmt).all()
+    memory = []
+    for row in reversed(rows):
+        memory.append({"role": "user", "content": trim_text(row.prompt, 300)})
+        memory.append({"role": "assistant", "content": trim_text(row.response, 500)})
+    return memory
 
 
 def tutor_mode(value: str | None) -> str:
@@ -1426,16 +1484,17 @@ def estimate_prompt_tokens(prompt: str) -> int:
     return max(1, len(prompt) // 4)
 
 
-def ollama_chat_payload(prompt: str, mode: str, *, stream: bool) -> dict:
+def ollama_chat_payload(prompt: str, mode: str, *, stream: bool, memory: list[dict] | None = None) -> dict:
     mode = tutor_mode(mode)
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    if memory:
+        messages.extend(memory)
+    messages.append({"role": "user", "content": prompt})
     return {
         "model": OLLAMA_MODEL,
         "stream": stream,
         "keep_alive": os.getenv("OLLAMA_KEEP_ALIVE", "10m"),
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
-        ],
+        "messages": messages,
         "options": {
             "temperature": 0.3,
             "top_p": 0.9,
@@ -1521,8 +1580,8 @@ def save_ai_conversation(
     db.commit()
 
 
-async def ask_ollama(prompt: str, mode: str) -> tuple[str, dict]:
-    payload = ollama_chat_payload(prompt, mode, stream=False)
+async def ask_ollama(prompt: str, mode: str, memory: list[dict] | None = None) -> tuple[str, dict]:
+    payload = ollama_chat_payload(prompt, mode, stream=False, memory=memory)
     started = time.perf_counter()
     prompt_tokens = estimate_prompt_tokens(prompt)
     timeout = httpx.Timeout(OLLAMA_TIMEOUT_SECONDS, connect=5.0)
@@ -1583,9 +1642,9 @@ def build_student_insights_prompt(analysis: dict) -> str:
     return "\n".join(lines)
 
 
-async def stream_ollama(prompt: str, mode: str):
+async def stream_ollama(prompt: str, mode: str, memory: list[dict] | None = None):
     payload = {
-        **ollama_chat_payload(prompt, mode, stream=True),
+        **ollama_chat_payload(prompt, mode, stream=True, memory=memory),
     }
     started = time.perf_counter()
     prompt_tokens = estimate_prompt_tokens(prompt)
@@ -1868,6 +1927,125 @@ def admin_reset_password(user_id: int, payload: dict = Body(default={}), current
     return {"ok": True, "message": "Password reset"}
 
 
+@router.delete("/admin/users/{user_id}/permanent")
+def admin_permanent_delete_user(user_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    require_role(current_user, "admin")
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Admin cannot delete the active session account")
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    db.execute(text("DELETE FROM ai_conversations WHERE student_id = :uid"), {"uid": user_id})
+    db.execute(text("DELETE FROM grade_entries WHERE student_id = :uid OR recorded_by = :uid"), {"uid": user_id})
+    db.execute(text("DELETE FROM submissions WHERE student_id = :uid"), {"uid": user_id})
+    db.execute(text("DELETE FROM quiz_attempts WHERE student_id = :uid"), {"uid": user_id})
+    db.execute(text("DELETE FROM enrollments WHERE student_id = :uid"), {"uid": user_id})
+    db.execute(text("DELETE FROM stream_posts WHERE author_id = :uid"), {"uid": user_id})
+    db.execute(text("DELETE FROM audit_logs WHERE actor_id = :uid"), {"uid": user_id})
+    db.execute(text("UPDATE courses SET teacher_id = NULL WHERE teacher_id = :uid"), {"uid": user_id})
+    db.delete(user)
+    log_action(db, current_user, "permanent_delete_user", "user", user_id)
+    db.commit()
+    return {"ok": True}
+
+
+@router.get("/admin/sections")
+def admin_sections(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[dict]:
+    require_role(current_user, "admin")
+    sections = db.scalars(select(Section).where(Section.is_active == True).order_by(Section.grade_level.asc(), Section.name.asc())).all()
+    result = []
+    for section in sections:
+        student_count = db.query(User).filter(User.section_name == section.name, User.role == "student", User.is_active == True).count()
+        result.append({
+            "id": section.id, "name": section.name, "gradeLevel": section.grade_level,
+            "educationLevel": section.education_level, "strand": section.strand,
+            "schoolYear": section.school_year, "adviserId": section.adviser_id,
+            "adviserName": section.adviser.full_name if section.adviser else "Unassigned",
+            "studentCount": student_count, "isActive": section.is_active,
+        })
+    return result
+
+
+@router.post("/admin/sections")
+def admin_create_section(payload: dict = Body(default={}), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    require_role(current_user, "admin")
+    education_level, grade_level, strand = validate_grade_path(
+        clean_text(payload.get("educationLevel") or "Junior High School", max_length=40),
+        clean_text(payload.get("gradeLevel") or "Grade 7", max_length=50),
+        clean_text(payload.get("strand"), required=False, max_length=80),
+    )
+    adviser_id = payload.get("adviserId") or payload.get("adviser_id")
+    if adviser_id and not db.scalar(select(User).where(User.id == int(adviser_id), User.role == "teacher")):
+        raise HTTPException(status_code=400, detail="Adviser must be a teacher account")
+    section = Section(
+        name=clean_text(payload.get("name"), max_length=120),
+        grade_level=grade_level, education_level=education_level, strand=strand,
+        school_year=clean_text(payload.get("schoolYear") or "2026-2027", max_length=20),
+        adviser_id=int(adviser_id) if adviser_id else None, is_active=True,
+    )
+    db.add(section)
+    log_action(db, current_user, "create_section", "section", None, section.name)
+    db.commit()
+    db.refresh(section)
+    return {"ok": True, "id": section.id}
+
+
+@router.put("/admin/sections/{section_id}")
+def admin_update_section(section_id: int, payload: dict = Body(default={}), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    require_role(current_user, "admin")
+    section = db.get(Section, section_id)
+    if not section:
+        raise HTTPException(status_code=404, detail="Section not found")
+    if "name" in payload:
+        section.name = clean_text(payload["name"], max_length=120)
+    if "gradeLevel" in payload or "educationLevel" in payload or "strand" in payload:
+        section.education_level, section.grade_level, section.strand = validate_grade_path(
+            clean_text(payload.get("educationLevel") or section.education_level, max_length=40),
+            clean_text(payload.get("gradeLevel") or section.grade_level, max_length=50),
+            clean_text(payload.get("strand") or section.strand, required=False, max_length=80),
+        )
+    if "adviserId" in payload:
+        adviser_id = payload["adviserId"]
+        if adviser_id and not db.scalar(select(User).where(User.id == int(adviser_id), User.role == "teacher")):
+            raise HTTPException(status_code=400, detail="Adviser must be a teacher account")
+        section.adviser_id = int(adviser_id) if adviser_id else None
+    if "isActive" in payload:
+        section.is_active = bool(payload["isActive"])
+    log_action(db, current_user, "update_section", "section", section.id)
+    db.commit()
+    return {"ok": True}
+
+
+@router.delete("/admin/sections/{section_id}")
+def admin_delete_section(section_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    require_role(current_user, "admin")
+    section = db.get(Section, section_id)
+    if not section:
+        raise HTTPException(status_code=404, detail="Section not found")
+    section.is_active = False
+    log_action(db, current_user, "deactivate_section", "section", section.id)
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/admin/sections/{section_id}/assign-students")
+def admin_assign_students_to_section(section_id: int, payload: dict = Body(default={}), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    require_role(current_user, "admin")
+    section = db.get(Section, section_id)
+    if not section or not section.is_active:
+        raise HTTPException(status_code=404, detail="Section not found")
+    student_ids = payload.get("studentIds") or payload.get("student_ids") or []
+    updated = 0
+    for sid in student_ids:
+        student = db.get(User, int(sid))
+        if student and student.role == "student":
+            student.section_name = section.name
+            updated += 1
+    log_action(db, current_user, "assign_students_to_section", "section", section.id, f"count={updated}")
+    db.commit()
+    return {"ok": True, "updated": updated}
+
+
 @router.get("/admin/courses")
 def admin_courses(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[dict]:
     require_role(current_user, "admin")
@@ -1923,6 +2101,28 @@ def admin_delete_course(course_id: int, current_user: User = Depends(get_current
         raise HTTPException(status_code=404, detail="Class not found")
     course.is_active = False
     log_action(db, current_user, "deactivate_course", "course", course.id)
+    db.commit()
+    return {"ok": True}
+
+
+@router.delete("/admin/courses/{course_id}/permanent")
+def admin_permanent_delete_course(course_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    require_role(current_user, "admin")
+    course = db.get(Course, course_id)
+    if not course:
+        raise HTTPException(status_code=404, detail="Class not found")
+    db.execute(text("DELETE FROM ai_conversations WHERE course_id = :cid"), {"cid": course_id})
+    db.execute(text("DELETE FROM grade_entries WHERE course_id = :cid"), {"cid": course_id})
+    db.execute(text("DELETE FROM submissions WHERE assignment_id IN (SELECT id FROM assignments WHERE course_id = :cid)"), {"cid": course_id})
+    db.execute(text("DELETE FROM assignments WHERE course_id = :cid"), {"cid": course_id})
+    db.execute(text("DELETE FROM quiz_questions WHERE quiz_id IN (SELECT id FROM quizzes WHERE course_id = :cid)"), {"cid": course_id})
+    db.execute(text("DELETE FROM quiz_attempts WHERE quiz_id IN (SELECT id FROM quizzes WHERE course_id = :cid)"), {"cid": course_id})
+    db.execute(text("DELETE FROM quizzes WHERE course_id = :cid"), {"cid": course_id})
+    db.execute(text("DELETE FROM enrollments WHERE course_id = :cid"), {"cid": course_id})
+    db.execute(text("DELETE FROM stream_posts WHERE course_id = :cid"), {"cid": course_id})
+    db.execute(text("DELETE FROM modules WHERE course_id = :cid"), {"cid": course_id})
+    db.delete(course)
+    log_action(db, current_user, "permanent_delete_course", "course", course_id)
     db.commit()
     return {"ok": True}
 
@@ -2436,10 +2636,15 @@ async def tutor(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> dict:
+    if check_safety(payload.question):
+        save_ai_conversation(db, user_id=current_user.id, course_id=None, module_id=None, question=payload.question, answer=SAFETY_REDIRECT)
+        return {"answer": SAFETY_REDIRECT, "mode": "normal", "metrics": {}, "context": {"moduleTitle": None, "courseTitle": None, "gradeSignals": []}, "safety_filtered": True}
+
     prompt, module, course, grade_lines, mode = build_tutor_prompt(db, current_user, payload)
+    memory = build_rolling_memory(db, current_user.id, course.id if course else None, ROLLING_MEMORY_LIMIT)
 
     try:
-        answer, metrics = await ask_ollama(prompt, mode)
+        answer, metrics = await ask_ollama(prompt, mode, memory=memory)
     except httpx.TimeoutException:
         logger.warning("Ollama timed out while answering tutor request for user_id=%s", current_user.id)
         metrics = {"model": OLLAMA_MODEL, "mode": mode, "prompt_tokens": estimate_prompt_tokens(prompt)}
@@ -2481,7 +2686,15 @@ async def tutor_stream(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    if check_safety(payload.question):
+        save_ai_conversation(db, user_id=current_user.id, course_id=None, module_id=None, question=payload.question, answer=SAFETY_REDIRECT)
+        async def safe_redirect():
+            yield f"data: {json.dumps({'content': SAFETY_REDIRECT})}\n\n"
+            yield "event: done\ndata: {}\n\n"
+        return StreamingResponse(safe_redirect(), media_type="text/event-stream")
+
     prompt, module, course, _, mode = build_tutor_prompt(db, current_user, payload)
+    memory = build_rolling_memory(db, current_user.id, course.id if course else None, ROLLING_MEMORY_LIMIT)
     user_id = current_user.id
     course_id = course.id if course else None
     module_id = module.id if module else None
@@ -2490,7 +2703,7 @@ async def tutor_stream(
     async def event_stream():
         answer_parts: list[str] = []
         try:
-            async for item in stream_ollama(prompt, mode):
+            async for item in stream_ollama(prompt, mode, memory=memory):
                 if item.get("done"):
                     answer = "".join(answer_parts).strip()
                     if answer:
