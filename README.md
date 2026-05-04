@@ -2,10 +2,12 @@
 
 Project DANILO packages an offline-first, DepEd-aligned AI-powered LMS for low-connectivity schools. The installer generates a complete local stack with FastAPI, React, PostgreSQL, Nginx, Docker Compose, Wi-Fi captive portal services, and an Ollama AI tutor.
 
-Default administrator credentials must remain:
+Default administrator credentials:
 
 - Username: `admin`
-- Password: `nacjan@danilo.edu`
+- Password: `ProjectDANILO2026!`
+
+Override via `DANILO_ADMIN_USERNAME` and `DANILO_ADMIN_PASSWORD` environment variables.
 
 ## Quick Start
 

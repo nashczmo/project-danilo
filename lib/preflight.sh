@@ -53,10 +53,9 @@ validate_wifi_capability() {
 }
 
 validate_wifi_passphrase() {
-  WIFI_PASSPHRASE="PDanilo2026!"
-
   if (( ${#WIFI_PASSPHRASE} < 8 || ${#WIFI_PASSPHRASE} > 63 )); then
-    echo "Wi-Fi passphrase must be 8-63 characters."
+    echo "Wi-Fi passphrase must be 8-63 characters. Current length: ${#WIFI_PASSPHRASE}"
+    echo "Set DANILO_WIFI_PASSPHRASE to override. Default: ProjectDANILO2026!"
     exit 1
   fi
 }

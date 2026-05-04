@@ -2048,8 +2048,28 @@ def teacher_create_announcement(course_id: int, payload: dict = Body(default={})
 @router.post("/teacher/courses/{course_id}/modules")
 def teacher_create_module(course_id: int, payload: dict = Body(default={}), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
     course = ensure_teacher_course(db, current_user, course_id)
+    module = Module(
+        course_id=course.id,
+        melc_code=clean_text(payload.get("melcCode") or payload.get("melc_code") or "TEACHER-CREATED", max_length=120),
+        learning_competency=clean_text(payload.get("learningCompetency") or payload.get("learning_competency"), required=False, max_length=2000),
+        lesson_objectives=clean_text(payload.get("lessonObjectives") or payload.get("lesson_objectives"), required=False, max_length=2000),
+        assessment_type=validate_assessment_type(payload.get("assessmentType") or payload.get("assessment_type")),
+        grade_level=course.grade_level,
+        subject=course.subject,
+        quarter=validate_quarter(payload.get("quarter") or course.quarter),
+        week=int(payload.get("week") or 1),
+        sequence_order=int(payload.get("sequenceOrder") or payload.get("sequence_order") or 1),
+        folder_name=clean_text(payload.get("folderName") or payload.get("folder_name") or f"{course.code}/Lessons", max_length=255),
+        title=clean_text(payload.get("title"), max_length=255),
+        summary=clean_text(payload.get("summary") or "Teacher-created lesson module.", max_length=2000),
+        essential_question=clean_text(payload.get("essentialQuestion") or payload.get("essential_question") or "What will you learn from this lesson?", max_length=1000),
+        content=clean_text(payload.get("content"), required=False, max_length=5000),
+        file_url=clean_text(payload.get("fileUrl") or payload.get("file_url"), required=False, max_length=500),
+    )
     db.add(module)
+    log_action(db, current_user, "create_module", "module", None, f"course={course.code}")
     db.commit()
+    db.refresh(module)
     return {"ok": True, "id": module.id}
 
 
